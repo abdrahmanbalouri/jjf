@@ -50,6 +50,8 @@ class ForumApp {
 
         document.getElementById('nav-messages')?.addEventListener('click', (e) => {
             e.preventDefault();
+            //console.log('zmar');
+            
             this.showView('messages');
         });
 
@@ -61,6 +63,8 @@ class ForumApp {
         document.getElementById('back-to-posts')?.addEventListener('click', () => {
             this.showView('posts');
         });
+
+
     }
 
     async checkSession() {
@@ -90,8 +94,16 @@ class ForumApp {
         };
 
         this.socket.onmessage = (event) => {
+            console.log(45454);
+            
+
+            this.loadUsers(); // Refresh user list for online status updates
+            if (!event.data) return;
             const message = JSON.parse(event.data);
+
             switch (message.type) {
+
+
                 case 'user_status':
                     this.updateUserStatus(message.userId, message.isOnline);
                     break;
@@ -113,8 +125,8 @@ class ForumApp {
         this.socket.onclose = () => {
             console.log('WebSocket disconnected');
             this.currentUser = null;
-            this.showUnauthenticatedUI();
-            this.showView('login');
+            // this.showUnauthenticatedUI();
+            // this.showView('login');
         };
 
         this.socket.onerror = (error) => {
@@ -131,7 +143,7 @@ class ForumApp {
                 this.loadPosts();
                 break;
             case 'messages':
-                this.loadUsers();
+               this.loadUsers();
                 break;
         }
     }
@@ -161,6 +173,7 @@ class ForumApp {
 
             if (response.ok) {
                 const data = await response.json();
+
                 this.currentUser = data.user;
                 this.initWebSocket();
                 this.showAuthenticatedUI();
@@ -392,10 +405,13 @@ class ForumApp {
 
     // Message Methods
     async loadUsers() {
+          
+
         try {
             const response = await fetch('/api/users');
             if (!response.ok) throw new Error('Failed to load users');
             const users = await response.json();
+
             this.renderUsers(users.filter(user => user.id !== this.currentUser.id));
         } catch (error) {
             console.error('Error loading users:', error);
@@ -408,12 +424,14 @@ class ForumApp {
         const container = document.getElementById('users-list');
         if (!container) return;
 
-        container.innerHTML = users.map(user => `
-            <div class="user ${user.isOnline ? 'online' : 'offline'}" data-user-id="${user.id}">
-                <span class="status ${user.isOnline ? 'online' : 'offline'}"></span>
-                ${user.nickname}
-            </div>
-        `).join('');
+        container.innerHTML = users
+            .filter(user => user.id !== this.currentUser.id)
+            .map(user => `
+    <div class="user ${user.isOnline ? 'online' : 'offline'}" data-user-id="${user.id}">
+      <span class="status ${user.isOnline ? 'online' : 'offline'}"></span>
+      ${user.nickname}
+    </div>
+  `).join('');
 
         document.querySelectorAll('.user').forEach(item => {
             item.addEventListener('click', () => {

@@ -148,11 +148,11 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
             Type    string          `json:"type"`
             Payload json.RawMessage `json:"payload"`
         }
-
         if err := conn.ReadJSON(&msg); err != nil {
             log.Printf("WebSocket read error for user %s: %v", user.ID, err)
             break
         }
+                fmt.Println(msg)
 
         switch msg.Type {
         case "private_message":

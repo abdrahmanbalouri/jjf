@@ -143,7 +143,7 @@ class ForumApp {
                 this.loadPosts();
                 break;
             case 'messages':
-               this.loadUsers();
+            //    this.loadUsers();
                 break;
         }
     }
@@ -404,22 +404,51 @@ class ForumApp {
     }
 
     // Message Methods
-    async loadUsers() {
-          
+async loadUsers() {
+    try {
+        const response = await fetch('/api/users');
+        if (!response.ok) throw new Error('Failed to load users');
+        const users = await response.json();
 
-        try {
-            const response = await fetch('/api/users');
-            if (!response.ok) throw new Error('Failed to load users');
-            const users = await response.json();
+        // Fetch latest message for each user
+        const usersWithMessages = await Promise.all(
+            users
+                .filter(user => user.id !== this.currentUser.id)
+                .map(async user => {
+                    try {
+                        const msgResponse = await fetch(`/api/messages?with=${user.id}`);
+                        if (!msgResponse.ok) throw new Error('Failed to fetch messages');
+                        const messages = await msgResponse.json();
+                        // Find the most recent message (sent or received)
+                        const latestMessage = messages
+                            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0]?.timestamp || null;
+                        return { ...user, latestMessage };
+                    } catch (error) {
+                        console.error(`Error fetching messages for user ${user.id}:`, error);
+                        return { ...user, latestMessage: null };
+                    }
+                })
+        );
 
-            this.renderUsers(users.filter(user => user.id !== this.currentUser.id));
-        } catch (error) {
-            console.error('Error loading users:', error);
-            document.getElementById('users-list').innerHTML =
-                '<div class="error">Failed to load users</div>';
+        // Sort users by latest message timestamp (newest first) or nickname
+        const sortedUsers = usersWithMessages.sort((a, b) => {
+            const timeA = a.latestMessage ? new Date(a.latestMessage) : null;
+            const timeB = b.latestMessage ? new Date(b.latestMessage) : null;
+            if (timeA && timeB) return timeB - timeA;
+            if (timeA) return -1;
+            if (timeB) return 1;
+            return a.nickname.localeCompare(b.nickname);
+        });
+
+        this.renderUsers(sortedUsers);
+    } catch (error) {
+        console.error('Error loading users:', error);
+        const container = document.getElementById('users-list');
+        if (container) {
+            container.innerHTML = '<div class="error">Failed to load users. Please try again.</div>';
         }
     }
-
+}
     renderUsers(users) {
         const container = document.getElementById('users-list');
         if (!container) return;

@@ -82,7 +82,7 @@ class ForumApp {
         this.socket.onopen = () => {
             console.log('WebSocket connected');
         };
-
+          //    this.loadUsers()
         this.socket.onmessage = (event) => {
             if (!event.data) return;
             const message = JSON.parse(event.data);
@@ -92,7 +92,7 @@ class ForumApp {
                     this.updateUserStatus(message.userId, message.isOnline);
                     break;
                 case 'online_users':
-                    this.renderUsers(message.payload);
+                    this.loadUsers
                     break;
                 case 'private_message':
                     this.handlePrivateMessage(message.payload);
@@ -600,6 +600,7 @@ class ForumApp {
                     messageId: clientMessageId,
                 },
             }));
+            this.loadUsers()
             document.getElementById('message-content').value = '';
         } catch (error) {
             console.error('Error sending message:', error);

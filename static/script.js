@@ -664,7 +664,7 @@ class ForumApp {
             </div>
         `;
         container.insertAdjacentHTML('beforeend', messageElement);
-        container.scrollTop = container.scrollHeight;
+       container.scrollTop = container.scrollHeight;
     }
 }
 

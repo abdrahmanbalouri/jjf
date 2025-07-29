@@ -50,21 +50,11 @@ class ForumApp {
 
         document.getElementById('nav-messages')?.addEventListener('click', (e) => {
             e.preventDefault();
-            //console.log('zmar');
-            
             this.showView('messages');
         });
 
-        // Post and comment forms
+        // Post form
         document.getElementById('post-form')?.addEventListener('submit', (e) => this.handlePostCreate(e));
-        document.getElementById('comment-form')?.addEventListener('submit', (e) => this.handleCommentCreate(e));
-
-        // Back to posts
-        document.getElementById('back-to-posts')?.addEventListener('click', () => {
-            this.showView('posts');
-        });
-
-
     }
 
     async checkSession() {
@@ -94,16 +84,10 @@ class ForumApp {
         };
 
         this.socket.onmessage = (event) => {
-            console.log(45454);
-            
-
-            this.loadUsers(); // Refresh user list for online status updates
             if (!event.data) return;
             const message = JSON.parse(event.data);
 
             switch (message.type) {
-
-
                 case 'user_status':
                     this.updateUserStatus(message.userId, message.isOnline);
                     break;
@@ -125,8 +109,8 @@ class ForumApp {
         this.socket.onclose = () => {
             console.log('WebSocket disconnected');
             this.currentUser = null;
-            // this.showUnauthenticatedUI();
-            // this.showView('login');
+            this.showUnauthenticatedUI();
+            this.showView('login');
         };
 
         this.socket.onerror = (error) => {
@@ -143,7 +127,7 @@ class ForumApp {
                 this.loadPosts();
                 break;
             case 'messages':
-            //    this.loadUsers();
+                this.loadUsers();
                 break;
         }
     }
@@ -173,7 +157,6 @@ class ForumApp {
 
             if (response.ok) {
                 const data = await response.json();
-
                 this.currentUser = data.user;
                 this.initWebSocket();
                 this.showAuthenticatedUI();
@@ -318,16 +301,13 @@ class ForumApp {
         document.querySelectorAll('.view-comments').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const postId = e.target.dataset.postId;
-                this.viewPostDetail(postId);
+                this.showCommentPopup(postId);
             });
         });
     }
 
-    async viewPostDetail(postId) {
+    async showCommentPopup(postId) {
         try {
-            document.getElementById('current-post-title').textContent = 'Loading...';
-            document.getElementById('comments-container').innerHTML = '';
-
             const [postResponse, commentsResponse] = await Promise.all([
                 fetch(`/api/posts/${postId}`),
                 fetch(`/api/comments?post_id=${postId}`)
@@ -339,15 +319,32 @@ class ForumApp {
             const post = await postResponse.json();
             const comments = await commentsResponse.json();
 
-            document.getElementById('current-post-title').textContent = post.title || 'Post';
-            document.getElementById('comment-form').dataset.postId = postId;
-            this.renderComments(comments || []);
+            document.getElementById('popup-post-title').textContent = post.title || 'Post';
+            document.getElementById('popup-comment-form').dataset.postId = postId;
+            this.renderComments(comments || [], 'popup-comments-container');
 
-            this.showView('post-detail');
+            const popup = document.getElementById('comment-popup');
+            popup.classList.remove('hidden');
+
+            const closeBtn = document.getElementById('popup-close');
+            closeBtn.onclick = () => popup.classList.add('hidden');
+
+            const form = document.getElementById('popup-comment-form');
+            console.log('Form element:', form); // Debug: Check if form is found
+            if (!form) {
+                console.error('Popup comment form not found!');
+                return;
+            }
+            // Remove existing listeners to prevent duplicates
+            const newForm = form.cloneNode(true);
+            form.parentNode.replaceChild(newForm, form);
+            newForm.addEventListener('submit', (e) => {
+                this.handleCommentCreate(e);
+            });
         } catch (error) {
-            console.error('Error viewing post:', error);
-            document.getElementById('current-post-title').textContent = 'Error loading post';
-            document.getElementById('comments-container').innerHTML =
+            console.error('Error showing comment popup:', error);
+            document.getElementById('popup-post-title').textContent = 'Error loading post';
+            document.getElementById('popup-comments-container').innerHTML =
                 '<div class="error">Failed to load post details. Please try again.</div>';
         }
     }
@@ -355,8 +352,15 @@ class ForumApp {
     // Comment Methods
     async handleCommentCreate(e) {
         e.preventDefault();
-        const content = document.getElementById('comment-content').value;
+        const content = document.getElementById('popup-comment-content').value;
         const postId = e.target.dataset.postId;
+
+        console.log('Creating comment:', { postId, content }); // Debug: Log form data
+
+        if (!content || !postId) {
+            alert('Please enter a comment');
+            return;
+        }
 
         try {
             const response = await fetch('/api/comments', {
@@ -367,7 +371,7 @@ class ForumApp {
 
             if (response.ok) {
                 e.target.reset();
-                this.loadComments(postId);
+                this.loadComments(postId, 'popup-comments-container');
             } else {
                 const error = await response.json();
                 alert(error.error || 'Failed to create comment');
@@ -378,8 +382,8 @@ class ForumApp {
         }
     }
 
-    renderComments(comments) {
-        const container = document.getElementById('comments-container');
+    renderComments(comments, containerId = 'popup-comments-container') {
+        const container = document.getElementById(containerId);
         container.innerHTML = comments.map(comment => `
             <div class="comment">
                 <div class="comment-meta">
@@ -391,64 +395,63 @@ class ForumApp {
         `).join('');
     }
 
-    async loadComments(postId) {
+    async loadComments(postId, containerId = 'popup-comments-container') {
         try {
             const response = await fetch(`/api/comments?post_id=${postId}`);
             if (!response.ok) throw new Error('Failed to load comments');
             const comments = await response.json();
-            this.renderComments(comments);
+            this.renderComments(comments, containerId);
         } catch (error) {
             console.error('Error loading comments:', error);
-            alert('Failed to load comments');
+            document.getElementById(containerId).innerHTML =
+                '<div class="error">Failed to load comments</div>';
         }
     }
 
     // Message Methods
-async loadUsers() {
-    try {
-        const response = await fetch('/api/users');
-        if (!response.ok) throw new Error('Failed to load users');
-        const users = await response.json();
+    async loadUsers() {
+        try {
+            const response = await fetch('/api/users');
+            if (!response.ok) throw new Error('Failed to load users');
+            const users = await response.json();
 
-        // Fetch latest message for each user
-        const usersWithMessages = await Promise.all(
-            users
-                .filter(user => user.id !== this.currentUser.id)
-                .map(async user => {
-                    try {
-                        const msgResponse = await fetch(`/api/messages?with=${user.id}`);
-                        if (!msgResponse.ok) throw new Error('Failed to fetch messages');
-                        const messages = await msgResponse.json();
-                        // Find the most recent message (sent or received)
-                        const latestMessage = messages
-                            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0]?.timestamp || null;
-                        return { ...user, latestMessage };
-                    } catch (error) {
-                        console.error(`Error fetching messages for user ${user.id}:`, error);
-                        return { ...user, latestMessage: null };
-                    }
-                })
-        );
+            const usersWithMessages = await Promise.all(
+                users
+                    .filter(user => user.id !== this.currentUser.id)
+                    .map(async user => {
+                        try {
+                            const msgResponse = await fetch(`/api/messages?with=${user.id}`);
+                            if (!msgResponse.ok) throw new Error('Failed to fetch messages');
+                            const messages = await msgResponse.json();
+                            const latestMessage = messages
+                                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0]?.timestamp || null;
+                            return { ...user, latestMessage };
+                        } catch (error) {
+                            console.error(`Error fetching messages for user ${user.id}:`, error);
+                            return { ...user, latestMessage: null };
+                        }
+                    })
+            );
 
-        // Sort users by latest message timestamp (newest first) or nickname
-        const sortedUsers = usersWithMessages.sort((a, b) => {
-            const timeA = a.latestMessage ? new Date(a.latestMessage) : null;
-            const timeB = b.latestMessage ? new Date(b.latestMessage) : null;
-            if (timeA && timeB) return timeB - timeA;
-            if (timeA) return -1;
-            if (timeB) return 1;
-            return a.nickname.localeCompare(b.nickname);
-        });
+            const sortedUsers = usersWithMessages.sort((a, b) => {
+                const timeA = a.latestMessage ? new Date(a.latestMessage) : null;
+                const timeB = b.latestMessage ? new Date(b.latestMessage) : null;
+                if (timeA && timeB) return timeB - timeA;
+                if (timeA) return -1;
+                if (timeB) return 1;
+                return a.nickname.localeCompare(b.nickname);
+            });
 
-        this.renderUsers(sortedUsers);
-    } catch (error) {
-        console.error('Error loading users:', error);
-        const container = document.getElementById('users-list');
-        if (container) {
-            container.innerHTML = '<div class="error">Failed to load users. Please try again.</div>';
+            this.renderUsers(sortedUsers);
+        } catch (error) {
+            console.error('Error loading users:', error);
+            const container = document.getElementById('users-list');
+            if (container) {
+                container.innerHTML = '<div class="error">Failed to load users. Please try again.</div>';
+            }
         }
     }
-}
+
     renderUsers(users) {
         const container = document.getElementById('users-list');
         if (!container) return;
@@ -456,11 +459,11 @@ async loadUsers() {
         container.innerHTML = users
             .filter(user => user.id !== this.currentUser.id)
             .map(user => `
-    <div class="user ${user.isOnline ? 'online' : 'offline'}" data-user-id="${user.id}">
-      <span class="status ${user.isOnline ? 'online' : 'offline'}"></span>
-      ${user.nickname}
-    </div>
-  `).join('');
+                <div class="user ${user.isOnline ? 'online' : 'offline'}" data-user-id="${user.id}">
+                    <span class="status ${user.isOnline ? 'online' : 'offline'}"></span>
+                    ${user.nickname}
+                </div>
+            `).join('');
 
         document.querySelectorAll('.user').forEach(item => {
             item.addEventListener('click', () => {
@@ -488,10 +491,8 @@ async loadUsers() {
         document.getElementById('message-form').dataset.userId = userId;
         await this.loadMessages(userId);
 
-        // Mark unread messages as read
         await this.markMessagesAsRead(userId);
 
-        // Remove existing submit listeners to prevent duplicates
         const form = document.getElementById('message-form');
         const newForm = form.cloneNode(true);
         form.parentNode.replaceChild(newForm, form);
@@ -509,7 +510,6 @@ async loadUsers() {
             const container = document.getElementById('messages-container');
             if (!container) return;
 
-            // Render server messages
             container.innerHTML = messages.map(message => `
                 <div class="message ${message.senderId === this.currentUser.id ? 'sent' : 'received'}" data-message-id="${message.id}">
                     <div class="message-meta">
@@ -521,7 +521,6 @@ async loadUsers() {
                 </div>
             `).join('');
 
-            // Re-render pending messages for this conversation
             this.pendingMessages.forEach((msg, clientMessageId) => {
                 if (msg.receiverId === userId) {
                     const messageElement = `
@@ -552,7 +551,6 @@ async loadUsers() {
             if (!response.ok) throw new Error('Failed to fetch messages');
             const messages = await response.json();
 
-            // Send mark_read for each unread message from senderId
             for (const message of messages) {
                 if (message.senderId === senderId && !message.isRead) {
                     this.socket.send(JSON.stringify({
@@ -576,7 +574,6 @@ async loadUsers() {
         const clientMessageId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
         const timestamp = new Date().toISOString();
 
-        // Render message immediately
         if (this.currentConversation === receiverId) {
             this.renderMessage({
                 messageId: clientMessageId,
@@ -588,7 +585,6 @@ async loadUsers() {
             });
         }
 
-        // Store pending message
         this.pendingMessages.set(clientMessageId, {
             receiverId,
             content,
@@ -609,7 +605,6 @@ async loadUsers() {
             console.error('Error sending message:', error);
             alert('Failed to send message');
             this.pendingMessages.delete(clientMessageId);
-            // Remove failed message from UI
             const messageElement = document.querySelector(`.message[data-message-id="${clientMessageId}"]`);
             if (messageElement) messageElement.remove();
         }
@@ -618,7 +613,6 @@ async loadUsers() {
     handlePrivateMessage(payload) {
         if (this.currentConversation && payload.senderId === this.currentConversation) {
             this.renderMessage(payload);
-            // Mark message as read since it's viewed
             this.socket.send(JSON.stringify({
                 type: 'mark_read',
                 payload: {
@@ -628,14 +622,13 @@ async loadUsers() {
             }));
         } else {
             console.log(`New message from ${payload.senderName}`);
-            this.loadUsers(); // Refresh user list for new message indicator
+            this.loadUsers();
         }
     }
 
     handleMessageConfirmation(payload) {
         const clientMessageId = payload.clientMessageId;
         if (this.pendingMessages.has(clientMessageId)) {
-            // Update message ID in UI
             const oldMessageElement = document.querySelector(`.message[data-message-id="${clientMessageId}"]`);
             if (oldMessageElement && this.currentConversation === payload.receiverId) {
                 oldMessageElement.setAttribute('data-message-id', payload.messageId);

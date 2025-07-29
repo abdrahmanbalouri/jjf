@@ -152,7 +152,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
             log.Printf("WebSocket read error for user %s: %v", user.ID, err)
             break
         }
-                fmt.Println(msg)
+        fmt.Println(msg)
 
         switch msg.Type {
         case "private_message":
@@ -176,6 +176,24 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
                 continue
             }
             handleMarkRead(user.ID, readData.SenderId, readData.MessageId)
+        case "typing":
+            var typingData struct {
+                ReceiverId string `json:"receiverId"`
+            }
+            if err := json.Unmarshal(msg.Payload, &typingData); err != nil {
+                log.Printf("Failed to unmarshal typing message: %v", err)
+                continue
+            }
+            handleTyping(client, user.ID, user.Nickname, typingData.ReceiverId)
+        case "stop_typing":
+            var typingData struct {
+                ReceiverId string `json:"receiverId"`
+            }
+            if err := json.Unmarshal(msg.Payload, &typingData); err != nil {
+                log.Printf("Failed to unmarshal stop_typing message: %v", err)
+                continue
+            }
+            handleStopTyping(client, user.ID, user.Nickname, typingData.ReceiverId)
         }
     }
 }
@@ -331,6 +349,63 @@ func handleMarkRead(receiverId, senderId, messageId string) {
                 log.Printf("Failed to notify sender %s of read status: %v", senderId, err)
                 client.conn.Close()
                 delete(clients, client)
+            }
+        }
+    }
+}
+func handleTyping(client *Client, senderId, senderNickname, receiverId string) {
+    clientsMutex.Lock()
+    defer clientsMutex.Unlock()
+
+    for c := range clients {
+        if c.userId == receiverId {
+            err := c.conn.WriteJSON(struct {
+                Type    string `json:"type"`
+                Payload struct {
+                    SenderId   string `json:"senderId"`
+                    SenderName string `json:"senderName"`
+                } `json:"payload"`
+            }{
+                Type: "typing",
+                Payload: struct {
+                    SenderId   string `json:"senderId"`
+                    SenderName string `json:"senderName"`
+                }{
+                    SenderId:   senderId,
+                    SenderName: senderNickname,
+                },
+            })
+            if err != nil {
+                log.Printf("Failed to send typing event to user %s: %v", receiverId, err)
+            }
+        }
+    }
+}
+
+func handleStopTyping(client *Client, senderId, senderNickname, receiverId string) {
+    clientsMutex.Lock()
+    defer clientsMutex.Unlock()
+
+    for c := range clients {
+        if c.userId == receiverId {
+            err := c.conn.WriteJSON(struct {
+                Type    string `json:"type"`
+                Payload struct {
+                    SenderId   string `json:"senderId"`
+                    SenderName string `json:"senderName"`
+                } `json:"payload"`
+            }{
+                Type: "stop_typing",
+                Payload: struct {
+                    SenderId   string `json:"senderId"`
+                    SenderName string `json:"senderName"`
+                }{
+                    SenderId:   senderId,
+                    SenderName: senderNickname,
+                },
+            })
+            if err != nil {
+                log.Printf("Failed to send stop_typing event to user %s: %v", receiverId, err)
             }
         }
     }

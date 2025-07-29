@@ -77,46 +77,52 @@ class ForumApp {
     }
 
     initWebSocket() {
-        this.socket = new WebSocket('ws://localhost:8080/ws');
+    this.socket = new WebSocket('ws://localhost:8080/ws');
 
-        this.socket.onopen = () => {
-            console.log('WebSocket connected');
-        };
-          //    this.loadUsers()
-        this.socket.onmessage = (event) => {
-            if (!event.data) return;
-            const message = JSON.parse(event.data);
+    this.socket.onopen = () => {
+        console.log('WebSocket connected');
+    };
 
-            switch (message.type) {
-                case 'user_status':
-                    this.updateUserStatus(message.userId, message.isOnline);
-                    break;
-                case 'online_users':
-                    this.loadUsers
-                    break;
-                case 'private_message':
-                    this.handlePrivateMessage(message.payload);
-                    break;
-                case 'message_confirmation':
-                    this.handleMessageConfirmation(message.payload);
-                    break;
-                case 'message_read':
-                    this.handleMessageRead(message.payload);
-                    break;
-            }
-        };
+    this.socket.onmessage = (event) => {
+        if (!event.data) return;
+        const message = JSON.parse(event.data);
 
-        this.socket.onclose = () => {
-            console.log('WebSocket disconnected');
-            this.currentUser = null;
-            this.showUnauthenticatedUI();
-            this.showView('login');
-        };
+        switch (message.type) {
+            case 'user_status':
+                this.updateUserStatus(message.userId, message.isOnline);
+                break;
+            case 'online_users':
+                this.loadUsers();
+                break;
+            case 'private_message':
+                this.handlePrivateMessage(message.payload);
+                break;
+            case 'message_confirmation':
+                this.handleMessageConfirmation(message.payload);
+                break;
+            case 'message_read':
+                this.handleMessageRead(message.payload);
+                break;
+            case 'typing':     
+                this.handleTypingIndicator(message.payload);
+                break;
+            case 'stop_typing':                
+                this.handleStopTyping(message.payload);
+                break;
+        }
+    };
 
-        this.socket.onerror = (error) => {
-            console.error('WebSocket error:', error);
-        };
-    }
+    this.socket.onclose = () => {
+        console.log('WebSocket disconnected');
+        this.currentUser = null;
+        this.showUnauthenticatedUI();
+        this.showView('login');
+    };
+
+    this.socket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+    };
+}
 
     showView(view) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -486,21 +492,55 @@ class ForumApp {
         }
     }
 
-    async startConversation(userId) {
-        this.currentConversation = userId;
-        document.getElementById('message-form').dataset.userId = userId;
-        await this.loadMessages(userId);
+async startConversation(userId) {
+    this.currentConversation = userId;
+ //   document.getElementById('message-form').dataset.userId = userId;
+    await this.loadMessages(userId);
+    await this.markMessagesAsRead(userId);
 
-        await this.markMessagesAsRead(userId);
+    // Clear any existing typing indicator
+  
 
-        const form = document.getElementById('message-form');
-        const newForm = form.cloneNode(true);
-        form.parentNode.replaceChild(newForm, form);
-        newForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.sendMessage(userId);
-        });
-    }
+    // Debounce typing event
+    let typingTimeout;
+    const messageInput = document.getElementById('message-content');
+    
+    messageInput.addEventListener('input', () => {
+         
+         
+        clearTimeout(typingTimeout);
+        this.socket.send(JSON.stringify({
+            type: 'typing',
+            payload: {
+            receiverId: userId,
+            },
+        }));
+        // Stop typing indicator after 2 seconds of inactivity
+        typingTimeout = setTimeout(() => {
+            this.socket.send(JSON.stringify({
+                type: 'stop_typing',
+                payload: {
+                receiverId: userId,
+                },
+            }));
+        }, 1000);
+    });
+
+    // Replace form to prevent duplicate event listeners
+    const form = document.getElementById('message-form');
+    
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        this.sendMessage(userId);
+        // Clear typing indicator on message send
+        this.socket.send(JSON.stringify({
+            type: 'stop_typing',
+            payload: {
+            receiverId: userId,
+            },
+        }));
+    });
+}
 
     async loadMessages(userId) {
         try {
@@ -544,6 +584,27 @@ class ForumApp {
                 '<div class="error">Failed to load messages</div>';
         }
     }
+
+    handleTypingIndicator(payload) {
+        
+  
+        const typingIndicator = document.getElementById('typing-indicator');
+        if (typingIndicator) {
+            console.log(9999);
+            
+            typingIndicator.textContent = `${payload.senderName} is typing...`;
+        }
+    
+}
+
+handleStopTyping() {
+    
+        const typingIndicator = document.getElementById('typing-indicator');
+        if (typingIndicator) {
+            typingIndicator.textContent = '';
+        }
+    
+}
 
     async markMessagesAsRead(senderId) {
         try {

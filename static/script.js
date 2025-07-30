@@ -120,6 +120,7 @@ class ForumApp {
     };
 
     this.socket.onerror = (error) => {
+        this.loadUsers()
         console.error('WebSocket error:', error);
     };
 }
@@ -683,7 +684,8 @@ handleStopTyping() {
                 },
             }));
         } else {
-            console.log(`New message from ${payload.senderName}`);
+              console.log(44545454);
+              
             this.loadUsers();
         }
     }

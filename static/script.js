@@ -66,6 +66,8 @@ class ForumApp {
                 this.initWebSocket();
                 this.showView('posts');
             } else {
+                console.log(555);
+                
                 this.showUnauthenticatedUI();
                 this.showView('login');
             }
@@ -115,12 +117,11 @@ class ForumApp {
     this.socket.onclose = () => {
         console.log('WebSocket disconnected');
         this.currentUser = null;
-        this.showUnauthenticatedUI();
-        this.showView('login');
+      
     };
 
     this.socket.onerror = (error) => {
-        this.loadUsers()
+        //this.loadUsers()
         console.error('WebSocket error:', error);
     };
 }
@@ -494,50 +495,62 @@ class ForumApp {
     }
 
 async startConversation(userId) {
+    // Update the current conversation
     this.currentConversation = userId;
- //   document.getElementById('message-form').dataset.userId = userId;
+
+    // Update the form's data-user-id attribute
+    const form = document.getElementById('message-form');
+    if (form) {
+        form.dataset.userId = userId;
+    } else {
+        console.error('Message form not found!');
+        return;
+    }
+
+    // Clear any existing typing indicator
+    const typingIndicator = document.getElementById('typing-indicator');
+    if (typingIndicator) {
+        typingIndicator.textContent = '';
+    }
+
+    // Load messages for the new conversation
     await this.loadMessages(userId);
     await this.markMessagesAsRead(userId);
 
-    // Clear any existing typing indicator
-  
+    // Remove existing event listeners to prevent duplication
+    const newForm = form.cloneNode(true);
+    form.parentNode.replaceChild(newForm, form);
 
-    // Debounce typing event
-    let typingTimeout;
     const messageInput = document.getElementById('message-content');
-    
+    let typingTimeout;
+
+    // Add typing event listener
     messageInput.addEventListener('input', () => {
-         
-         
         clearTimeout(typingTimeout);
         this.socket.send(JSON.stringify({
             type: 'typing',
             payload: {
-            receiverId: userId,
+                receiverId: userId,
             },
         }));
-        // Stop typing indicator after 2 seconds of inactivity
         typingTimeout = setTimeout(() => {
             this.socket.send(JSON.stringify({
                 type: 'stop_typing',
                 payload: {
-                receiverId: userId,
+                    receiverId: userId,
                 },
             }));
         }, 1000);
     });
 
-    // Replace form to prevent duplicate event listeners
-    const form = document.getElementById('message-form');
-    
-    form.addEventListener('submit', (e) => {
+    // Add form submit event listener
+    newForm.addEventListener('submit', (e) => {
         e.preventDefault();
         this.sendMessage(userId);
-        // Clear typing indicator on message send
         this.socket.send(JSON.stringify({
             type: 'stop_typing',
             payload: {
-            receiverId: userId,
+                receiverId: userId,
             },
         }));
     });

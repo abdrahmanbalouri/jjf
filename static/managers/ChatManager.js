@@ -217,11 +217,7 @@ export class ChatManager {
             const messages = await response.json();
             const container = document.getElementById('messages-container');
             if (!container) return;
-            // If no beforeTimestamp (initial load), clear container
-            if (!beforeTimestamp) {
-                container.innerHTML = '';
-            }
-            // Update earliest message timestamp for next pagination
+          
             if (messages.length > 0) {
                 this.earliestMessageTimestamp = messages[0].timestamp;
             }
@@ -240,7 +236,7 @@ export class ChatManager {
                 container.insertAdjacentHTML('afterbegin', messageHtml);
             } else {
                 container.insertAdjacentHTML('beforeend', messageHtml);
-                container.scrollTop = container.scrollHeight;
+                //container.scrollTop = container.scrollHeight;
             }
         } catch (error) {
             console.error('Error loading messages:', error);
@@ -258,7 +254,7 @@ export class ChatManager {
         const oldScrollTop = messagesContainer.scrollTop;
         await this.loadMessages(userId, this.earliestMessageTimestamp);
         // Adjust scroll position to maintain view
-        messagesContainer.scrollTop = messagesContainer.scrollHeight - oldScrollHeight + oldScrollTop;
+     //   messagesContainer.scrollTop = messagesContainer.scrollHeight - oldScrollHeight + oldScrollTop;
     }
 
     handleTypingIndicator(payload) {

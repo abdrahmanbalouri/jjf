@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"jj/database" // Import the database package
@@ -31,14 +32,14 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 func authenticateUser(r *http.Request) (string, error) {
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
-        fmt.Println("99")
+		fmt.Println("99")
 		return "", err
 	}
 
 	var userID string
 	err = database.DB.QueryRow("SELECT id FROM users WHERE id = ?", cookie.Value).Scan(&userID)
 	if err != nil {
-        fmt.Println(err)
+		fmt.Println(err)
 		return "", err
 	}
 
@@ -420,13 +421,30 @@ func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := database.DB.Query(`
+	limit := 10 // Default limit
+	if limitParam := r.URL.Query().Get("limit"); limitParam != "" {
+		if l, err := strconv.Atoi(limitParam); err == nil && l > 0 {
+			limit = l
+		}
+	}
+
+	query := `
         SELECT m.id, m.sender_id, m.content, m.created_at, u.nickname, m.is_read
         FROM private_messages m
         JOIN users u ON m.sender_id = u.id
         WHERE (m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?)
-        ORDER BY m.created_at ASC`,
-		userID, withUserId, withUserId, userID)
+    `
+	args := []interface{}{userID, withUserId, withUserId, userID}
+
+	if before := r.URL.Query().Get("before"); before != "" {
+		query += ` AND m.created_at < ?`
+		args = append(args, before)
+	}
+
+	query += ` ORDER BY m.created_at DESC LIMIT ?`
+	args = append(args, limit)
+
+	rows, err := database.DB.Query(query, args...)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Failed to fetch messages")
 		return
@@ -450,6 +468,11 @@ func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		messages = append(messages, msg)
+	}
+
+	// Reverse messages to maintain ascending order
+	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+		messages[i], messages[j] = messages[j], messages[i]
 	}
 
 	respondWithJSON(w, http.StatusOK, messages)

@@ -5,6 +5,7 @@ export class ChatManager {
         this.typingTimeout = null;
         this.earliestMessageTimestamp = null; // Track earliest message for pagination
         this.isLoadingMessages = false; // Prevent multiple simultaneous fetches
+        this.id = null
     }
 
     initWebSocket() {
@@ -348,6 +349,16 @@ export class ChatManager {
             }));
             this.loadUsers();
         } else {
+            clearTimeout(this.id)
+            let b = document.getElementById('not')
+            b.textContent = 'new message'+"from   "+ payload.senderName
+ 
+           this.id= setTimeout(()=>{
+
+              b.textContent = ""
+
+            },2000)
+
             this.loadUsers();
         }
     }

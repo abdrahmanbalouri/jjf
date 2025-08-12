@@ -95,21 +95,6 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	rowss, errs := database.DB.Query("SELECT id , is_online FROM users")
-	if errs != nil {
-		return
-	}
-	cc := []string{}
-	defer rowss.Close()
-	for rows.Next() {
-		var userID string
-		if err := rows.Scan(&userID); err != nil {
-			return
-		}
-		cc = append(cc, userID)
-	}
-
-	fmt.Println(cc)
 
 	// Update status
 	_, err = database.DB.Exec("UPDATE users SET is_online = TRUE WHERE id = ?", user.ID)
@@ -278,7 +263,7 @@ func HandlePrivateMessage(client *models.Client, senderID, receiverID, content, 
 	}
 
 	confirmation := map[string]interface{}{
-		"type": "message_confirmation",
+		"type": "private_message",
 		"payload": map[string]interface{}{
 			"messageId":       messageID,
 			"clientMessageId": clientMessageID,

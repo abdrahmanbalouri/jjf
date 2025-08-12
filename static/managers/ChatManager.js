@@ -32,9 +32,9 @@ export class ChatManager {
                 case 'private_message':
                     this.handlePrivateMessage(message.payload);
                     break;
-                case 'message_confirmation':
-                    this.handleMessageConfirmation(message.payload);
-                    break;
+                // case 'message_confirmation':
+                //     this.handleMessageConfirmation(message.payload);
+                //     break;
                 case 'message_read':
                     this.handleMessageRead(message.payload);
                     break;
@@ -50,11 +50,11 @@ export class ChatManager {
             console.log('WebSocket disconnected');
             this.app.currentUser = null;
             console.log(3333);
-             const users = document.querySelectorAll('.user')
-             console.log(users);
-             
-             users.classList.remove()
-             users.classList.add('offline')
+            const users = document.querySelectorAll('.user')
+            console.log(users);
+
+            users.classList.remove()
+            users.classList.add('offline')
 
 
 
@@ -308,68 +308,79 @@ export class ChatManager {
 
     async sendMessage(receiverId) {
         const content = document.getElementById('message-content').value;
-        if (!content) return;
+        // if (!content) return;
         const clientMessageId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
-        const timestamp = new Date().toISOString();
-        if (this.app.currentConversation === receiverId) {
-            this.renderMessage({
+        // const timestamp = new Date().toISOString();
+        // if (this.app.currentConversation === receiverId) {
+        //     this.renderMessage({
+        //         messageId: clientMessageId,
+        //         senderId: this.app.currentUser.id,
+        //         senderName: this.app.currentUser.nickname,
+        //         content: content,
+        //         timestamp: timestamp,
+        //         isRead: false,
+        //     });
+        // }
+        // this.app.pendingMessages.set(clientMessageId, {
+        //     receiverId,
+        //     content,
+        //     timestamp,
+        // });
+
+        this.socket.send(JSON.stringify({
+            type: 'private_message',
+            payload: {
+                receiverId,
+                content,
                 messageId: clientMessageId,
-                senderId: this.app.currentUser.id,
-                senderName: this.app.currentUser.nickname,
-                content: content,
-                timestamp: timestamp,
-                isRead: false,
-            });
-        }
-        this.app.pendingMessages.set(clientMessageId, {
-            receiverId,
-            content,
-            timestamp,
-        });
-        try {
-            this.socket.send(JSON.stringify({
-                type: 'private_message',
-                payload: {
-                    receiverId,
-                    content,
-                    messageId: clientMessageId,
-                },
-            }));
-            this.loadUsers();
-            document.getElementById('message-content').value = '';
-        } catch (error) {
-            console.error('Error sending message:', error);
-            alert('Failed to send message');
-            this.app.pendingMessages.delete(clientMessageId);
-            const messageElement = document.querySelector(`.message[data-message-id="${clientMessageId}"]`);
-            if (messageElement) messageElement.remove();
-        }
+            },
+        }));
+        this.loadUsers();
+        document.getElementById('message-content').value = '';
+
     }
 
-    handlePrivateMessage(payload) {
-        if (this.app.currentConversation && payload.senderId === this.app.currentConversation) {
+    handlePrivateMessage(payload) {       
+        console.log(payload.senderId);
+
+        console.log(this.app.currentUser);
+        
+         
+        if (payload.senderId == this.app.currentUser.id) {
             this.renderMessage(payload);
-            this.socket.send(JSON.stringify({
-                type: 'mark_read',
-                payload: {
-                    senderId: payload.senderId,
-                    messageId: payload.messageId,
-                },
-            }));
-            this.loadUsers();
+               
+
+
         } else {
-            clearTimeout(this.id)
-            let b = document.getElementById('not')
-            b.textContent = 'new message' + "from   " + payload.senderName
+            
+             
 
-            this.id = setTimeout(() => {
+            if (this.app.currentConversation && payload.senderId === this.app.currentConversation) {
+                this.renderMessage(payload);
+                this.socket.send(JSON.stringify({
+                    type: 'mark_read',
+                    payload: {
+                        senderId: payload.senderId,
+                        messageId: payload.messageId,
+                    },
+                }));
+                this.loadUsers();
+            } else {
+                clearTimeout(this.id)
+                let b = document.getElementById('not')
+                b.textContent = 'new message' + "from   " + payload.senderName
 
-                b.textContent = ""
+                this.id = setTimeout(() => {
 
-            }, 2000)
+                    b.textContent = ""
 
-            this.loadUsers();
+                }, 2000)
+
+                this.loadUsers();
+            }
         }
+
+
     }
     throttle(func, wait) {
         let isThrottled = false;

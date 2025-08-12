@@ -346,7 +346,9 @@ export class ChatManager {
         console.log(this.app.currentUser);
         
          
-        if (payload.senderId == this.app.currentUser.id) {
+        if (payload.senderId == this.app.currentUser.id && payload.receiverId == this.app.currentConversation) {
+            console.log(1111);
+            
             this.renderMessage(payload);
                
 

@@ -40,17 +40,17 @@ export class AuthManager {
             const response = await fetch('/api/users/me');
             if (response.ok) {
                 this.app.currentUser = await response.json();
-                this.app.showAuthenticatedUI();
                 this.app.initWebSocket(); // Initialize WebSocket only after user is authenticated
                 this.app.showView('posts'); // Show posts after login
+                this.app.showAuthenticatedUI();
             } else {
-                this.app.showUnauthenticatedUI();
                 this.app.showView('login');
+                this.app.showUnauthenticatedUI();
             }
         } catch (error) {
             console.error('Session check failed:', error);
-            this.app.showUnauthenticatedUI();
             this.app.showView('login');
+            this.app.showUnauthenticatedUI();
         }
     }
 
@@ -110,6 +110,7 @@ export class AuthManager {
                 registerErrorElement.textContent = 'Registration successful! Please login.';
                 registerErrorElement.className = 'success';
                 this.app.showView('login');
+               
             } else {
                 const error = await response.json();
                 registerErrorElement.textContent = error.error || 'Registration failed';

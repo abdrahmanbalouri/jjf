@@ -93,21 +93,7 @@ export const register = `
 `;
 
 export const posts = `
-  <header>
-        <div class="container">
-            <nav>
-                <h1>Forum App</h1>
-                <div class="nav-links" id="auth-links">
-                    <a href="#" id="nav-login">Login</a>
-                    <a href="#" id="nav-register">Register</a>
-                </div>
-                <div class="nav-links hidden" id="user-links">
-                    <span id="user-nickname-display"></span>
-                    <a href="#" id="nav-logout">Logout</a>
-                </div>
-            </nav>
-        </div>
-    </header>
+
     <div class="view" id="posts-view">
         <h2>Posts</h2>
         <form id="post-form">
@@ -149,20 +135,42 @@ export const posts = `
 `;
 
 export const messages = `
-    <div class="message" id="messages">
-        <h1 id="not"></h1>
-        <div class="users-list">
-            <h3>Users</h3>
-            <div id="typing-indicator" class="typing-indicator"></div>
-            <div id="users-list"></div>
+  <header>
+        <div class="container">
+            <nav>
+                <h1>Forum App</h1>
+                <div class="nav-links" id="auth-links">
+                    <a href="#" id="nav-login">Login</a>
+                    <a href="#" id="nav-register">Register</a>
+                </div>
+                <div class="nav-links hidden" id="user-links">
+                    <span id="user-nickname-display"></span>
+                    <a href="#" id="nav-logout">Logout</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+  <div class="chat-interface">
+    <!-- Liste des utilisateurs -->
+    <div class="users-panel">
+        <h3>Utilisateurs</h3>
+        <div id="typing-indicator" class="typing-indicator"></div>
+        <div id="users-list"></div>
+    </div>
+
+    <!-- Conversation (cachée initialement) -->
+    <div id="conversation-panel" class="hidden">
+        <div class="conversation-header">
+            <button id="back-to-users" class="back-button">← Retour</button>
+            <h2 id="current-chat-user">Discussion avec <span id="receiver-name"></span></h2>
         </div>
         <div class="messages-container" id="messages-container"></div>
-        <form id="message-form">
+        <form id="message-form" class="message-form">
             <div class="form-group">
-                <label for="message-content">Message</label>
-                <textarea id="message-content" required></textarea>
+                <textarea id="message-content" placeholder="Écrivez votre message..." required></textarea>
             </div>
-            <button type="submit">Send Message</button>
+            <button type="submit">Envoyer</button>
         </form>
     </div>
+</div>
 `;

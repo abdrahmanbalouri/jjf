@@ -75,7 +75,6 @@ export class AuthManager {
                 this.app.showView('posts');
                 loginErrorElement.textContent = ''; // Clear error on success
                 // Make sure 'messages' container is visible if it was hidden
-                document.getElementById('messages').style.display = 'block';
             } else {
                 const error = await response.json();
                 loginErrorElement.textContent = error.error || 'Login failed';

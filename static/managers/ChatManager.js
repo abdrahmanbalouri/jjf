@@ -108,20 +108,28 @@ export class ChatManager {
     }
 
     renderUsers(users) {
+        console.log(users);
+        
         const container = document.getElementById('users-list');
         if (!container) return;
         container.innerHTML = users
             .filter(user => user.id !== this.app.currentUser.id)
             .map(user => `
-                <div class="user ${user.isOnline ? 'online' : 'offline'}" data-user-id="${user.id}">
+                <div class="user ${user.isOnline ? 'online' : 'offline'}"  data-user-id="${user.id}"
+           data-role="${user.nickname}" >
                     <span class="status ${user.isOnline ? 'online' : 'offline'}"></span>
                     ${user.nickname}
                 </div>
             `).join('');
         document.querySelectorAll('.user[data-user-id]').forEach(item => {
             item.addEventListener('click', () => {
+                console.log(item);
+                
                 const userId = item.dataset.userId;
-                this.startConversation(userId);
+                    const userName = item.dataset.role;
+                    console.log(userName);
+                    
+                this.startConversation(userId,userName);
             });
         });
     }
@@ -139,7 +147,7 @@ export class ChatManager {
         }
     }
 
-    async startConversation(userId) {
+    async startConversation(userId,userName) {
         this.app.currentConversation = userId;
         const form = document.getElementById('message-form');
         if (form) {
@@ -155,12 +163,23 @@ export class ChatManager {
         // Reset pagination state
         this.earliestMessageTimestamp = null;
         this.isLoadingMessages = false;
+          document.getElementById('receiver-name').textContent = userName;
+        document.getElementById('conversation-panel').classList.remove('hidden');
+        document.getElementById('message-content').focus();
+        const backButton = document.getElementById('back-to-users');
+        if (backButton) {
+            backButton.addEventListener('click', () => {
+                this.closeConversation();
+            });
+        }
+    
+
+   
         // Load initial 10 messages
         await this.loadMessages(userId);
         await this.markMessagesAsRead(userId);
         const newForm = form.cloneNode(true);
         form.parentNode.replaceChild(newForm, form);
-        const messageInput = document.getElementById('message-content');
         if (this.typingTimeout) {
             clearTimeout(this.typingTimeout);
         }
@@ -211,6 +230,14 @@ export class ChatManager {
 
             }, 2000);
         }
+    }
+     closeConversation() {
+        // Cacher le panneau de conversation et réafficher la liste des utilisateurs
+        document.getElementById('conversation-panel').classList.add('hidden');
+        document.getElementById('users-panel').classList.remove('hidden');
+        
+        this.currentConversation = null;
+        document.getElementById('message-content').value = '';
     }
 
     async loadMessages(userId, beforeTimestamp = null) {

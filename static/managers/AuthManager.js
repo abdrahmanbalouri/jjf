@@ -132,10 +132,7 @@ export class AuthManager {
                     this.app.socket.close(); // Close WebSocket connection
                 }
                 this.app.pendingMessages.clear(); // Clear pending messages
-                this.app.showUnauthenticatedUI();
                 this.app.showView('login');
-                // Hide messages container on logout
-                document.getElementById('messages').style.display = 'none';
             } else {
                 alert('Logout failed');
             }

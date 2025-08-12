@@ -49,11 +49,16 @@ export class ChatManager {
         this.socket.onclose = () => {
             console.log('WebSocket disconnected');
             this.app.currentUser = null;
-            this.loadUsers()
-            this.clearMessages();
-            document.getElementById('users-list').innerHTML = ''; // Clear user list
-            this.app.showUnauthenticatedUI();
-            this.app.showView('login');
+            console.log(3333);
+             const users = document.querySelectorAll('.user')
+             console.log(users);
+             
+             users.classList.remove()
+             users.classList.add('offline')
+
+
+
+
         };
         this.socket.onerror = (error) => {
             console.error('WebSocket error:', error);
@@ -193,14 +198,18 @@ export class ChatManager {
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
             // Remove any existing scroll listeners to prevent duplicates
             messagesContainer.onscroll = null;
-        
-            
-         messagesContainer.onscroll = this.throttle(() => {
-            
-        if (messagesContainer.scrollTop < 50 && !this.isLoadingMessages) {
-            this.loadMoreMessages(userId);
-        }
-    }, 500); 
+
+
+            messagesContainer.onscroll = this.throttle(() => {
+                console.log(messagesContainer.scrollTop);
+
+                setInterval(() => {
+                    if (messagesContainer.scrollTop <= 100 && !this.isLoadingMessages) {
+                        this.loadMoreMessages(userId);
+                    }
+                }, 2000)
+
+            }, 2000);
         }
     }
 
@@ -209,10 +218,10 @@ export class ChatManager {
             this.isLoadingMessages = true;
             let url = `/api/messages?with=${userId}&limit=10`;
             if (beforeTimestamp) {
-                
+
                 url += `&before=${encodeURIComponent(beforeTimestamp)}`;
             }
-            
+
             const response = await fetch(url);
             if (!response.ok) throw new Error('Failed to load messages');
             const messages = await response.json();
@@ -351,29 +360,29 @@ export class ChatManager {
         } else {
             clearTimeout(this.id)
             let b = document.getElementById('not')
-            b.textContent = 'new message'+"from   "+ payload.senderName
- 
-           this.id= setTimeout(()=>{
+            b.textContent = 'new message' + "from   " + payload.senderName
 
-              b.textContent = ""
+            this.id = setTimeout(() => {
 
-            },2000)
+                b.textContent = ""
+
+            }, 2000)
 
             this.loadUsers();
         }
     }
-     throttle(func, wait) {
-    let isThrottled = false;
-    return function (...args) {
-        if (!isThrottled) {
-            isThrottled = true;
-            func.apply(this, args);
-            setTimeout(() => {
-                isThrottled = false;
-            }, wait);
-        }
-    };
-}
+    throttle(func, wait) {
+        let isThrottled = false;
+        return function (...args) {
+            if (!isThrottled) {
+                isThrottled = true;
+                func.apply(this, args);
+                setTimeout(() => {
+                    isThrottled = false;
+                }, wait);
+            }
+        };
+    }
 
     handleMessageConfirmation(payload) {
         const clientMessageId = payload.clientMessageId;

@@ -128,7 +128,7 @@ nav h1 {
   margin-bottom: 24px;
   margin: auto;
   border: 1px solid var(--border-color);
-  max-width: 50%;
+  max-width: 60%;
   overflow: hidden;
 }
 
@@ -429,9 +429,8 @@ button:active {
     transition: top 0.5s ease, opacity 0.5s ease;
 }
 
-/* class li ghadi tضيفها باش notification tban */
 #not.show {
-    top: 20px;   /* الموقع النهائي */
+    top: 20px;   
     opacity: 1;
 }
 

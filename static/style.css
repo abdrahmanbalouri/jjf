@@ -410,8 +410,31 @@ button:active {
   flex-direction: column;
   gap: 12px;
   max-height: calc(100vh - 250px);
-  scroll-behavior: smooth;
 }
+/* Notification container */
+#not {
+    position: fixed;
+    top: -50px;             
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #22c55e;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    font-size: 18px;
+    font-weight: 600;
+    z-index: 9999;
+    opacity: 0;
+    transition: top 0.5s ease, opacity 0.5s ease;
+}
+
+/* class li ghadi tضيفها باش notification tban */
+#not.show {
+    top: 20px;   /* الموقع النهائي */
+    opacity: 1;
+}
+
 
 /* Custom Scrollbar for Messages */
 .messages-container::-webkit-scrollbar {

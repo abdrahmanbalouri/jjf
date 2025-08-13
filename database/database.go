@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	_ "modernc.org/sqlite"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // DB is the database connection instance.
@@ -14,27 +14,9 @@ var DB *sql.DB
 // InitDB initializes the database connection.
 func InitDB(dataSourceName string) error {
 	var err error
-	DB, err = sql.Open("sqlite", dataSourceName)
+	DB, err = sql.Open("sqlite3", dataSourceName)
 	if err != nil {
 		return fmt.Errorf("failed to open database: %w", err)
-	}
-
-	_, err = DB.Exec("PRAGMA journal_mode=WAL;")
-	if err != nil {
-		DB.Close()
-		return fmt.Errorf("failed to enable WAL mode: %w", err)
-	}
-
-	_, err = DB.Exec("PRAGMA busy_timeout = 10000;")
-	if err != nil {
-		DB.Close()
-		return fmt.Errorf("failed to set busy timeout: %w", err)
-	}
-
-	_, err = DB.Exec("PRAGMA cache_size = -20000;")
-	if err != nil {
-		DB.Close()
-		return fmt.Errorf("failed to set cache size: %w", err)
 	}
 
 	if err = DB.Ping(); err != nil {
@@ -42,10 +24,11 @@ func InitDB(dataSourceName string) error {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	log.Println("Database connection established successfully with WAL and busy timeout.")
+	log.Println("Database connection established successfully.")
 	return nil
 }
 
+// CloseDB closes the database connection.
 func CloseDB() {
 	if DB != nil {
 		if err := DB.Close(); err != nil {

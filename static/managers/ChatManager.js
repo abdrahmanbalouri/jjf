@@ -109,7 +109,7 @@ export class ChatManager {
 
     renderUsers(users) {
         console.log(users);
-        
+
         const container = document.getElementById('users-list');
         if (!container) return;
         container.innerHTML = users
@@ -124,12 +124,12 @@ export class ChatManager {
         document.querySelectorAll('.user[data-user-id]').forEach(item => {
             item.addEventListener('click', () => {
                 console.log(item);
-                
+
                 const userId = item.dataset.userId;
-                    const userName = item.dataset.role;
-                    console.log(userName);
-                    
-                this.startConversation(userId,userName);
+                const userName = item.dataset.role;
+                console.log(userName);
+
+                this.startConversation(userId, userName);
             });
         });
     }
@@ -147,7 +147,7 @@ export class ChatManager {
         }
     }
 
-    async startConversation(userId,userName) {
+    async startConversation(userId, userName) {
         this.app.currentConversation = userId;
         const form = document.getElementById('message-form');
         if (form) {
@@ -163,7 +163,7 @@ export class ChatManager {
         // Reset pagination state
         this.earliestMessageTimestamp = null;
         this.isLoadingMessages = false;
-          document.getElementById('receiver-name').textContent = userName;
+        document.getElementById('receiver-name').textContent = userName;
         document.getElementById('conversation-panel').classList.remove('hidden');
         document.getElementById('message-content').focus();
         const backButton = document.getElementById('back-to-users');
@@ -172,9 +172,9 @@ export class ChatManager {
                 this.closeConversation();
             });
         }
-    
 
-   
+
+
         // Load initial 10 messages
         await this.loadMessages(userId);
         await this.markMessagesAsRead(userId);
@@ -231,11 +231,11 @@ export class ChatManager {
             }, 2000);
         }
     }
-     closeConversation() {
+    closeConversation() {
         // Cacher le panneau de conversation et réafficher la liste des utilisateurs
         document.getElementById('conversation-panel').classList.add('hidden');
         document.getElementById('users-panel').classList.remove('hidden');
-        
+
         this.currentConversation = null;
         document.getElementById('message-content').value = '';
     }
@@ -367,22 +367,22 @@ export class ChatManager {
 
     }
 
-    handlePrivateMessage(payload) {       
+    handlePrivateMessage(payload) {
         console.log(payload.senderId);
 
         console.log(this.app.currentUser);
-        
-         
+
+
         if (payload.senderId == this.app.currentUser.id && payload.receiverId == this.app.currentConversation) {
             console.log(1111);
-            
+
             this.renderMessage(payload);
-               
+
 
 
         } else {
-            
-             
+
+
 
             if (this.app.currentConversation && payload.senderId === this.app.currentConversation) {
                 this.renderMessage(payload);
@@ -397,11 +397,14 @@ export class ChatManager {
             } else {
                 clearTimeout(this.id)
                 let b = document.getElementById('not')
-                b.textContent = 'new message' + "from   " + payload.senderName
+                b.textContent = 'new message' + "     from   " + payload.senderName
+                b.classList.add('show');
 
                 this.id = setTimeout(() => {
 
                     b.textContent = ""
+                    not.classList.remove('show');
+
 
                 }, 2000)
 

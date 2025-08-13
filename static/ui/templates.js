@@ -135,22 +135,27 @@ export const posts = `
 `;
 
 export const messages = `
-  <header>
-        <div class="container">
-            <nav>
-                <h1>Forum App</h1>
-                <div class="nav-links" id="auth-links">
-                    <a href="#" id="nav-login">Login</a>
-                    <a href="#" id="nav-register">Register</a>
-                </div>
-                <div class="nav-links hidden" id="user-links">
-                    <span id="user-nickname-display"></span>
-                    <a href="#" id="nav-logout">Logout</a>
-                </div>
-            </nav>
-        </div>
-    </header>
-  <div class="chat-interface">
+
+<header>
+<div class="container">
+
+<nav>
+
+
+<h1>Forum App</h1>
+<div class="nav-links" id="auth-links">
+<a href="#" id="nav-login">Login</a>
+<a href="#" id="nav-register">Register</a>
+</div>
+<div class="nav-links hidden" id="user-links">
+<span id="user-nickname-display"></span>
+<a href="#" id="nav-logout">Logout</a>
+</div>
+</nav>
+</div>
+</header>
+<div class="chat-interface">
+<h1 id="not"></h1> 
     <!-- Liste des utilisateurs -->
     <div class="users-panel">
         <h3>Users</h3>

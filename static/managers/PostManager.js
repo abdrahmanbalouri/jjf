@@ -169,6 +169,9 @@ export class PostManager {
                 <div class="comment-content">${comment.content}</div>
             </div>
         `).join('');
+        container.scrollTop = container.scrollHeight;
+
+
     }
 
     async loadComments(postId, containerId = 'popup-comments-container') {

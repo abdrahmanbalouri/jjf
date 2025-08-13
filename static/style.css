@@ -34,11 +34,7 @@ body {
   min-height: 100vh;
 }
 
-.container {
-  max-width: 1300px;
-  margin: 0 auto;
-  padding: 0 24px;
-}
+
 
 /* Header Styles */
 header {
@@ -124,13 +120,15 @@ nav h1 {
 }
 
 .view {
+ 
   background: var(--surface-color);
   padding: 32px;
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-md);
   margin-bottom: 24px;
+  margin: auto;
   border: 1px solid var(--border-color);
-  max-width: 100%;
+  max-width: 50%;
   overflow: hidden;
 }
 
@@ -371,20 +369,23 @@ button:active {
   word-wrap: break-word;
 }
 
-/* Enhanced Chat Interface with Better Responsive Design */
 .chat-interface {
+  position: absolute;
+  left: 1%;
+  position: fixed;
   display: flex;
   height: calc(100vh - 120px);
   border-radius: var(--border-radius);
   overflow: hidden;
+  z-index: 200;
   box-shadow: var(--shadow-md);
   margin: 20px;
 }
 
 /* Panneau des utilisateurs */
 .users-panel {
-  flex: 0 0 300px;
-  background: linear-gradient(135deg, var(--background-color) 0%, #e0e7ff 100%);
+  
+    background: linear-gradient(135deg, var(--background-color) 0%, #e0e7ff 100%);
   padding: 20px;
   border-right: 1px solid var(--border-color);
   overflow-y: auto;
@@ -726,82 +727,9 @@ button:active {
 }
 
 /* Enhanced Responsive Design */
-@media (max-width: 1024px) {
-  .container {
-    padding: 0 20px;
-  }
 
-  .chat-interface {
-    margin: 10px;
-  }
 
-  .users-panel {
-    flex: 0 0 250px;
-  }
-}
 
-@media (max-width: 768px) {
-  .container {
-    padding: 0 16px;
-  }
-
-  nav {
-    flex-direction: column;
-    gap: 12px;
-    text-align: center;
-  }
-
-  .nav-links {
-    justify-content: center;
-    gap: 12px;
-  }
-
-  .view {
-    padding: 20px;
-    margin: 16px 0;
-  }
-
-  .post {
-    padding: 20px;
-  }
-
-  .popup-content {
-    padding: 20px;
-    margin: 10px;
-  }
-
-  /* Mobile Chat Interface */
-  .chat-interface {
-    flex-direction: column;
-    height: calc(100vh - 100px);
-    margin: 10px;
-  }
-
-  .users-panel {
-    flex: 0 0 200px;
-    border-right: none;
-    border-bottom: 1px solid var(--border-color);
-    max-height: 200px;
-  }
-
-  #conversation-panel {
-    flex: 1;
-    min-height: 0;
-  }
-
-  .messages-container {
-    max-height: calc(100vh - 400px);
-  }
-
-  .message {
-    max-width: 85%;
-  }
-
-  /* Better Posts Scroll on Mobile */
-  #posts-container {
-    max-height: 60vh;
-  }
-}
 
 @media (max-width: 480px) {
   .container {
@@ -841,8 +769,13 @@ button:active {
 
   /* Ultra Mobile Optimizations */
   .chat-interface {
-    margin: 5px;
-    border-radius: 8px;
+    position: flex;
+    z-index: 0;
+    flex-direction: column;
+    height: auto;
+    position: relative;
+    left: auto;
+    width: 95%;
   }
 
   .users-panel {

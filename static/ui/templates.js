@@ -153,7 +153,7 @@ export const messages = `
   <div class="chat-interface">
     <!-- Liste des utilisateurs -->
     <div class="users-panel">
-        <h3>Utilisateurs</h3>
+        <h3>Users</h3>
         <div id="typing-indicator" class="typing-indicator"></div>
         <div id="users-list"></div>
     </div>

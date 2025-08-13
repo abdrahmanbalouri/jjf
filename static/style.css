@@ -374,15 +374,13 @@ button:active {
 /* Enhanced Chat Interface with Better Responsive Design */
 .chat-interface {
   display: flex;
-  position: absolute;
-  left: 1%;
-  position: fixed;
-  z-index: 2000;
   height: calc(100vh - 120px);
+  background: var(--surface-color);
   border-radius: var(--border-radius);
   overflow: hidden;
   box-shadow: var(--shadow-md);
   margin: 20px;
+  position: relative;
 }
 
 /* Panneau des utilisateurs */

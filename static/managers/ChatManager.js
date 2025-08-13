@@ -49,12 +49,13 @@ export class ChatManager {
         this.socket.onclose = () => {
             console.log('WebSocket disconnected');
             this.app.currentUser = null;
-            console.log(3333);
-            const users = document.querySelectorAll('.user')
-            console.log(users);
+            
+            const typingIndicator = document.getElementById('typing-indicator');
 
-            users.classList.remove()
-            users.classList.add('offline')
+            console.log(typingIndicator);
+
+            typingIndicator.textContent = '';
+
 
 
 
@@ -127,7 +128,7 @@ export class ChatManager {
 
                 const userId = item.dataset.userId;
                 const userName = item.dataset.role;
-                console.log(userName);
+                
 
                 this.startConversation(userId, userName);
             });
@@ -334,8 +335,8 @@ export class ChatManager {
 
     async sendMessage(receiverId) {
         const content = document.getElementById('message-content').value;
-                const clientMessageId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
-    
+        const clientMessageId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+
 
         this.socket.send(JSON.stringify({
             type: 'private_message',

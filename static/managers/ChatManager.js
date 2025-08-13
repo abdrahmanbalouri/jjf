@@ -234,9 +234,8 @@ export class ChatManager {
     closeConversation() {
         // Cacher le panneau de conversation et réafficher la liste des utilisateurs
         document.getElementById('conversation-panel').classList.add('hidden');
-        document.getElementById('users-panel').classList.remove('hidden');
 
-        this.currentConversation = null;
+        this.app.currentConversation = null;
         document.getElementById('message-content').value = '';
     }
 
@@ -301,7 +300,7 @@ export class ChatManager {
     handleTypingIndicator(payload) {
         const typingIndicator = document.getElementById('typing-indicator');
         if (typingIndicator && payload.senderId === this.app.currentConversation) {
-            typingIndicator.textContent = `${payload.senderName} is typing...`;
+            typingIndicator.textContent = `${payload.senderName} is typing`;
         }
     }
 
@@ -335,24 +334,8 @@ export class ChatManager {
 
     async sendMessage(receiverId) {
         const content = document.getElementById('message-content').value;
-        // if (!content) return;
-        const clientMessageId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
-        // const timestamp = new Date().toISOString();
-        // if (this.app.currentConversation === receiverId) {
-        //     this.renderMessage({
-        //         messageId: clientMessageId,
-        //         senderId: this.app.currentUser.id,
-        //         senderName: this.app.currentUser.nickname,
-        //         content: content,
-        //         timestamp: timestamp,
-        //         isRead: false,
-        //     });
-        // }
-        // this.app.pendingMessages.set(clientMessageId, {
-        //     receiverId,
-        //     content,
-        //     timestamp,
-        // });
+                const clientMessageId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    
 
         this.socket.send(JSON.stringify({
             type: 'private_message',

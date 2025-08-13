@@ -158,7 +158,7 @@ export const messages = `
 <h1 id="not"></h1> 
     <!-- Liste des utilisateurs -->
     <div class="users-panel">
-        <h3>Users</h3>
+        <h3>Users ....</h3>
         <div id="typing-indicator" class="typing-indicator"></div>
         <div id="users-list"></div>
     </div>

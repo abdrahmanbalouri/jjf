@@ -128,8 +128,7 @@ nav h1 {
   margin-bottom: 24px;
   margin: auto;
   border: 1px solid var(--border-color);
-  max-width: 60%;
-  overflow: hidden;
+  max-width: 50%;
 }
 
 .view h2 {
@@ -371,7 +370,7 @@ button:active {
 
 .chat-interface {
   position: absolute;
-  left: 1%;
+  left: 0%;
   position: fixed;
   display: flex;
   height: calc(100vh - 120px);
@@ -379,9 +378,11 @@ button:active {
   overflow: hidden;
   z-index: 200;
   box-shadow: var(--shadow-md);
-  margin: 20px;
+  margin: 10px;
 }
-
+.chat-interface::-webkit-scrollbar {
+  display: none;           /* Chrome, Safari, Edge */
+}
 /* Panneau des utilisateurs */
 .users-panel {
   
@@ -434,8 +435,9 @@ button:active {
     opacity: 1;
 }
 
-
-/* Custom Scrollbar for Messages */
+.users-panel::-webkit-scrollbar {
+  display: none;          
+}
 .messages-container::-webkit-scrollbar {
   width: 8px;
 }
@@ -456,7 +458,7 @@ button:active {
 
 /* Panneau de conversation */
 #conversation-panel {
-  flex: 1;
+  flex: auto;
   display: flex;
   flex-direction: column;
   background: var(--surface-color);
@@ -753,7 +755,7 @@ button:active {
 
 
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .container {
     padding: 0 12px;
   }
@@ -761,7 +763,9 @@ button:active {
   nav h1 {
     font-size: 18px;
   }
-
+.chat-interface::-webkit-scrollbar {
+  display: none;           /* Chrome, Safari, Edge */
+}
   .view {
     padding: 16px;
   }
@@ -823,7 +827,9 @@ button:active {
     --text-secondary: #94a3b8;
     --border-color: #334155;
   }
-
+.users-panel::-webkit-scrollbar {
+  display: none;           /* Chrome, Safari, Edge */
+}
   body {
     background: linear-gradient(135deg, var(--background-color) 0%, #1e1b4b 100%);
   }

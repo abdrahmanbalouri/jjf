@@ -167,7 +167,7 @@ export const messages = `
     <div id="conversation-panel" class="hidden">
         <div class="conversation-header">
             <button id="back-to-users" class="back-button">← Retour</button>
-            <h2 id="current-chat-user">Discussion avec <span id="receiver-name"></span></h2>
+            <h2 id="current-chat-user">  <span id="receiver-name"></span></h2>
         </div>
         <div class="messages-container" id="messages-container"></div>
         <form id="message-form" class="message-form">

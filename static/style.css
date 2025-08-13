@@ -35,7 +35,7 @@ body {
 }
 
 .container {
-  max-width: 800px;
+  max-width: 1300px;
   margin: 0 auto;
   padding: 0 24px;
 }
@@ -373,16 +373,12 @@ button:active {
 
 /* Enhanced Chat Interface with Better Responsive Design */
 .chat-interface {
-    position: absolute;
-    left: 1%;
-    z-index: 2222;;
-    position: fixed;
   display: flex;
   height: calc(100vh - 120px);
   border-radius: var(--border-radius);
   overflow: hidden;
+  box-shadow: var(--shadow-md);
   margin: 20px;
-  
 }
 
 /* Panneau des utilisateurs */
@@ -729,8 +725,22 @@ button:active {
   display: none !important;
 }
 
+/* Enhanced Responsive Design */
+@media (max-width: 1024px) {
+  .container {
+    padding: 0 20px;
+  }
 
-@media (max-width: 1300px) {
+  .chat-interface {
+    margin: 10px;
+  }
+
+  .users-panel {
+    flex: 0 0 250px;
+  }
+}
+
+@media (max-width: 768px) {
   .container {
     padding: 0 16px;
   }
@@ -762,6 +772,8 @@ button:active {
 
   /* Mobile Chat Interface */
   .chat-interface {
+    flex-direction: column;
+    height: calc(100vh - 100px);
     margin: 10px;
   }
 
@@ -829,7 +841,7 @@ button:active {
 
   /* Ultra Mobile Optimizations */
   .chat-interface {
-    margin: 2px;
+    margin: 5px;
     border-radius: 8px;
   }
 

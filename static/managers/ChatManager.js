@@ -439,7 +439,6 @@ export class ChatManager {
         const messageElement = `
             <div class="message ${message.senderId === this.app.currentUser.id ? 'sent' : 'received'}" data-message-id="${message.messageId}">
                 <div class="message-meta">
-                    <span>${message.senderName}</span>
                     <span>${new Date(message.timestamp).toLocaleString()}</span>
                     ${message.senderId === this.app.currentUser.id ? `<span class="read-status">${message.isRead ? '✓✓' : '✓'}</span>` : ''}
                 </div>

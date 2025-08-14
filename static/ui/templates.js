@@ -166,7 +166,7 @@ export const messages = `
     <!-- Conversation (cachée initialement) -->
     <div id="conversation-panel" class="hidden">
         <div class="conversation-header">
-            <button id="back-to-users" class="back-button">← Retour</button>
+            <button id="back-to-users" class="back-button"> DELETE </button>
             <h2 id="current-chat-user">  <span id="receiver-name"></span></h2>
         </div>
         <div class="messages-container" id="messages-container"></div>

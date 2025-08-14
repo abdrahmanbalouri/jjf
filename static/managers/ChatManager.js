@@ -164,7 +164,7 @@ export class ChatManager {
         // Reset pagination state
         this.earliestMessageTimestamp = null;
         this.isLoadingMessages = false;
-        document.getElementById('receiver-name').textContent = userName;
+        document.getElementById('receiver-name').textContent = `${userName}`;
         document.getElementById('conversation-panel').classList.remove('hidden');
         document.getElementById('message-content').focus();
         const backButton = document.getElementById('back-to-users');

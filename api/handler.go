@@ -322,7 +322,7 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Title == "" || req.Content == "" || req.Category == "" {
+	if (req.Title == "" || len(req.Title)>20) || req.Content == "" || req.Category == "" {
 		respondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}

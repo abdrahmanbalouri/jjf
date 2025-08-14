@@ -51,11 +51,17 @@ export class PostManager {
                 this.loadPosts(); // Reload posts after creation
             } else {
                 const error = await response.json();
-                alert(error.error || 'Failed to create post');
+                if(error.error == "Authentication required" ){
+                    throw Error('eror')
+                }
+                const err = document.getElementById('post-error')
+                err.textContent = error.error
+                    setTimeout(() => {
+                        err.textContent = ""
+                    }, 2000)
             }
         } catch (error) {
-            console.error('Error creating post:', error);
-            alert('Network error while creating post');
+            this.app.showView('login')
         }
     }
 

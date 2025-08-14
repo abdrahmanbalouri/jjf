@@ -51,14 +51,14 @@ export class PostManager {
                 this.loadPosts(); // Reload posts after creation
             } else {
                 const error = await response.json();
-                if(error.error == "Authentication required" ){
+                if (error.error == "Authentication required") {
                     throw Error('eror')
                 }
                 const err = document.getElementById('post-error')
                 err.textContent = error.error
-                    setTimeout(() => {
-                        err.textContent = ""
-                    }, 2000)
+                setTimeout(() => {
+                    err.textContent = ""
+                }, 2000)
             }
         } catch (error) {
             this.app.showView('login')
@@ -138,10 +138,7 @@ export class PostManager {
         const content = document.getElementById('popup-comment-content').value;
         const postId = e.target.dataset.postId;
 
-        if (!content || !postId) {
-            alert('Please enter a comment');
-            return;
-        }
+       
 
         try {
             const response = await fetch('/api/comments', {
@@ -155,11 +152,18 @@ export class PostManager {
                 this.loadComments(postId, 'popup-comments-container');
             } else {
                 const error = await response.json();
-                alert(error.error || 'Failed to create comment');
+                const err = document.getElementById('post-error2')
+              if (error.error == "Authentication required") {
+                    throw Error('eror')
+                }
+                err.textContent = error.error
+                setTimeout(() => {
+                    err.textContent = ""
+                }, 2000)
             }
         } catch (error) {
-            console.error('Error creating comment:', error);
-            alert('Network error while creating comment');
+            this.app.showView('login')
+
         }
     }
 

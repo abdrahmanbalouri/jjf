@@ -120,7 +120,9 @@ export const posts = `
         <div id="posts-container"></div>
     </div>
     <div id="comment-popup" class="popup hidden">
-        <div class="popup-content">
+    
+    <div class="popup-content">
+    <div id="post-error2" class="errorf"></div>
             <span id="popup-close" class="popup-close">&times;</span>
             <h2 id="popup-post-title" class="text-xl font-bold mb-4">Post Title</h2>
             <div id="popup-comments-container" class="comments-container mb-4"></div>

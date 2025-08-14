@@ -15,7 +15,6 @@ import (
 	"jj/models"   // Import your models
 
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -258,8 +257,13 @@ func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetPostHandler retrieves a single post by ID.
 func GetPostHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	postID := vars["id"]
+	 parts := strings.Split(r.URL.Path, "/")
+    if len(parts) < 4 { // ["", "api", "posts", "123"]
+			respondWithError(w, http.StatusNotFound, "Post not found")
+        return
+    }
+
+    postID := parts[3]
 
 	var post struct {
 		ID        string    `json:"id"`
@@ -335,6 +339,7 @@ func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "Post ID required")
 		return
 	}
+	fmt.Println(postID)
 
 	rows, err := database.DB.Query(`
         SELECT c.id, c.content, c.created_at, u.nickname
@@ -343,6 +348,7 @@ func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
         WHERE c.post_id = ?
         ORDER BY c.created_at ASC`, postID)
 	if err != nil {
+		fmt.Println("22")
 		respondWithError(w, http.StatusInternalServerError, "Failed to fetch comments")
 		return
 	}
@@ -360,6 +366,7 @@ func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 		var comment Comment
 		err := rows.Scan(&comment.ID, &comment.Content, &comment.CreatedAt, &comment.Author)
 		if err != nil {
+			fmt.Println("22222")
 			respondWithError(w, http.StatusInternalServerError, "Failed to process comments")
 			return
 		}

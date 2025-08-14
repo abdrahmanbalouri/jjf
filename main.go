@@ -25,11 +25,12 @@ func main() {
 	}
 
 	// 3. Setup Router
-	fs := http.FileServer(http.Dir("./static"))
 
+	// Serve static files
+	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	// API routes
+	// API Routes (using functions from the `api` package)
 	http.HandleFunc("/api/register", api.RegisterHandler)
 	http.HandleFunc("/api/login", api.LoginHandler)
 	http.HandleFunc("/api/logout", api.LogoutHandler)
@@ -37,19 +38,19 @@ func main() {
 	http.HandleFunc("/api/users", api.GetUsersHandler)
 	http.HandleFunc("/api/posts", api.GetPostsHandler)
 	http.HandleFunc("/api/posts/create", api.CreatePostHandler)
-	http.HandleFunc("/api/posts/", api.GetPostHandler)       // تحتاج التعامل مع /api/posts/{id} داخل الفنكشن
-	http.HandleFunc("/api/comments", api.GetCommentsHandler) // غادي تفرق بين GET و POST داخل الفنكشن
+	http.HandleFunc("/api/posts/{id}", api.GetPostHandler)
+	http.HandleFunc("/api/getcomments", api.GetCommentsHandler)
+	http.HandleFunc("/api/comments", api.CreateCommentHandler)
 	http.HandleFunc("/api/messages", api.GetMessagesHandler)
 
-	// WebSocket
+	// WebSocket Route (using the handler from the `websocket` package)
 	http.HandleFunc("/ws", websocket.WsHandler)
 
-	// SPA fallback
+	// SPA (Single Page Application) fallback
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./static/index.html")
 	})
 
-	// Start server
 	fmt.Println("Server started at http://localhost:8080")
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", nil))
 }

@@ -89,7 +89,7 @@ export class PostManager {
         try {
             const [postResponse, commentsResponse] = await Promise.all([
                 fetch(`/api/posts/${postId}`),
-                fetch(`/api/comments?post_id=${postId}`)
+                fetch(`/api/getcomments?post_id=${postId}`)
             ]);
 
             if (!postResponse.ok) throw new Error('Failed to load post');
@@ -177,7 +177,7 @@ export class PostManager {
 
     async loadComments(postId, containerId = 'popup-comments-container') {
         try {
-            const response = await fetch(`/api/comments?post_id=${postId}`);
+            const response = await fetch(`/api/getcomments?post_id=${postId}`);
             if (!response.ok) throw new Error('Failed to load comments');
             const comments = await response.json();
             this.renderComments(comments, containerId);

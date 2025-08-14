@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"jj/database" // Import the database package
-	"jj/models"   // Import your models
+	"jj/database"
+	"jj/models"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -26,7 +26,7 @@ var (
 
 // WsHandler manages WebSocket connections.
 func WsHandler(w http.ResponseWriter, r *http.Request) {
-	conn, err := Upgrader.Upgrade(w, r, nil) // Use package-level Upgrader
+	conn, err := Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("WebSocket upgrade error:", err)
 		return
@@ -39,11 +39,8 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 		conn.Close()
 		return
 	}
-	// for client := range Clients{
 
-	// }
-
-	var user models.User // Use models.User
+	var user models.User
 	err = database.DB.QueryRow("SELECT id, nickname FROM users WHERE id = ?", cookie.Value).Scan(&user.ID, &user.Nickname)
 	if err != nil {
 		log.Printf("Failed to authenticate user with session_id %s: %v", cookie.Value, err)
@@ -51,58 +48,59 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := &models.Client{Conn: conn, UserID: user.ID} // Use models.Client
+	client := &models.Client{Conn: conn, UserID: user.ID}
 
 	// Add client
-	ClientsMutex.Lock()    // Use package-level mutex
-	Clients[client] = true // Use package-level clients map
+	ClientsMutex.Lock()
+	Clients[client] = true
 	ClientsMutex.Unlock()
+
+	// Update online status for all users
 	allUsers := []string{}
 	rows, err := database.DB.Query("SELECT id FROM users")
 	if err != nil {
+		log.Println("Failed to get users:", err)
 		return
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var userID string
 		if err := rows.Scan(&userID); err != nil {
-			return
+			log.Println("Failed to scan user ID:", err)
+			continue
 		}
 		allUsers = append(allUsers, userID)
 	}
 
-	for _,r := range allUsers {
+	for _, r := range allUsers {
 		kk := false
-		for  clien := range Clients {
-			if clien.UserID != r {
-				continue
-			} else {
-                fmt.Println("11")
+		ClientsMutex.Lock()
+		for clien := range Clients {
+			if clien.UserID == r {
 				kk = true
 				_, err := database.DB.Exec("UPDATE users SET is_online = TRUE WHERE id = ?", r)
 				if err != nil {
+					log.Printf("Failed to set user %s online: %v", r, err)
 				}
 				break
 			}
 		}
+		ClientsMutex.Unlock()
 		if !kk {
-            fmt.Println("22")
 			_, err := database.DB.Exec("UPDATE users SET is_online = FALSE WHERE id = ?", r)
 			if err != nil {
+				log.Printf("Failed to set user %s offline: %v", r, err)
 			}
-
 		}
-
 	}
-
 
 	// Update status
 	_, err = database.DB.Exec("UPDATE users SET is_online = TRUE WHERE id = ?", user.ID)
 	if err != nil {
 		log.Printf("Failed to set user %s online: %v", user.ID, err)
 	}
-	BroadcastUserStatus(user.ID, true) // Call public function
-	BroadcastOnlineUsers()             // Call public function
+	BroadcastUserStatus(user.ID, true)
+	BroadcastOnlineUsers()
 
 	defer func() {
 		ClientsMutex.Lock()
@@ -135,7 +133,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 			var message struct {
 				ReceiverID string `json:"receiverId"`
 				Content    string `json:"content"`
-				MessageID  string `json:"messageId"` // Client-generated ID
+				MessageID  string `json:"messageId"`
 			}
 			if err := json.Unmarshal(msg.Payload, &message); err != nil {
 				log.Printf("Failed to unmarshal private message: %v", err)
@@ -158,7 +156,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			if err := json.Unmarshal(msg.Payload, &typingData); err != nil {
 				log.Printf("Failed to unmarshal typing message: %v", err)
-				continue
+			 continue
 			}
 			HandleTyping(client, user.ID, user.Nickname, typingData.ReceiverID)
 		case "stop_typing":
@@ -203,7 +201,7 @@ func BroadcastOnlineUsers() {
 	}
 	defer rows.Close()
 
-	var onlineUsers []models.User // Use models.User
+	var onlineUsers []models.User
 	for rows.Next() {
 		var user models.User
 		if err := rows.Scan(&user.ID, &user.Nickname); err != nil {
@@ -256,19 +254,6 @@ func HandlePrivateMessage(client *models.Client, senderID, receiverID, content, 
 			"clientMessageId": clientMessageID,
 			"senderId":        senderID,
 			"senderName":      senderNickname,
-			"content":         content,
-			"timestamp":       time.Now().Format(time.RFC3339),
-			"isRead":          false,
-		},
-	}
-
-	confirmation := map[string]interface{}{
-		"type": "private_message",
-		"payload": map[string]interface{}{
-			"messageId":       messageID,
-			"clientMessageId": clientMessageID,
-			"senderId":        senderID,
-			"senderName":      senderNickname,
 			"receiverId":      receiverID,
 			"content":         content,
 			"timestamp":       time.Now().Format(time.RFC3339),
@@ -279,7 +264,7 @@ func HandlePrivateMessage(client *models.Client, senderID, receiverID, content, 
 	ClientsMutex.Lock()
 	defer ClientsMutex.Unlock()
 
-	// Send to receiver
+	// Send to all connections of the receiver
 	for c := range Clients {
 		if c.UserID == receiverID {
 			if err := c.Conn.WriteJSON(message); err != nil {
@@ -290,11 +275,15 @@ func HandlePrivateMessage(client *models.Client, senderID, receiverID, content, 
 		}
 	}
 
-	// Send confirmation to sender
-	if err := client.Conn.WriteJSON(confirmation); err != nil {
-		log.Printf("Failed to send confirmation to sender %s: %v", senderID, err)
-		client.Conn.Close()
-		delete(Clients, client)
+	// Send to all connections of the sender (including all their tabs)
+	for c := range Clients {
+		if c.UserID == senderID {
+			if err := c.Conn.WriteJSON(message); err != nil {
+				log.Printf("Failed to send message to sender %s: %v", senderID, err)
+				c.Conn.Close()
+				delete(Clients, c)
+			}
+		}
 	}
 }
 
@@ -358,6 +347,8 @@ func HandleTyping(client *models.Client, senderID, senderNickname, receiverID st
 			})
 			if err != nil {
 				log.Printf("Failed to send typing event to user %s: %v", receiverID, err)
+				c.Conn.Close()
+				delete(Clients, c)
 			}
 		}
 	}
@@ -388,6 +379,8 @@ func HandleStopTyping(client *models.Client, senderID, senderNickname, receiverI
 			})
 			if err != nil {
 				log.Printf("Failed to send stop_typing event to user %s: %v", receiverID, err)
+				c.Conn.Close()
+				delete(Clients, c)
 			}
 		}
 	}

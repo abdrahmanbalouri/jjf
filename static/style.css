@@ -116,15 +116,13 @@ nav h1 {
 }
 
 .view {
- 
   background: var(--surface-color);
-  padding: 32px;
+  padding: 35px;
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-md);
-  margin-bottom: 24px;
   margin: auto;
   border: 1px solid var(--border-color);
-  max-width: 50%;
+  max-width: 55%;
 }
 
 .view h2 {

@@ -30,7 +30,7 @@ var (
 )
 
 // Utility Functions for API responses (can also be in a separate `utils` package)
-func respondWithError(w http.ResponseWriter, code int, message string) {
+func RespondWithError(w http.ResponseWriter, code int, message string) {
 	respondWithJSON(w, code, map[string]string{"error": message})
 }
 
@@ -72,18 +72,18 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request format")
+		RespondWithError(w, http.StatusBadRequest, "Invalid request format")
 		return
 	}
 
 	if req.Nickname == "" || req.Email == "" || req.Password == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing required fields")
+		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to hash password")
+		RespondWithError(w, http.StatusInternalServerError, "Failed to hash password")
 		return
 	}
 
@@ -94,10 +94,10 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		id, req.Nickname, req.Age, req.Gender, req.FirstName, req.LastName, req.Email, string(hashedPassword))
 	if err != nil {
 		if database.IsDuplicateKeyError(err) { // Use database.IsDuplicateKeyError
-			respondWithError(w, http.StatusConflict, "Nickname or email already exists")
+			RespondWithError(w, http.StatusConflict, "Nickname or email already exists")
 			return
 		}
-		respondWithError(w, http.StatusInternalServerError, "Failed to create user")
+		RespondWithError(w, http.StatusInternalServerError, "Failed to create user")
 		return
 	}
 
@@ -113,7 +113,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request format")
+		RespondWithError(w, http.StatusBadRequest, "Invalid request format")
 		return
 	}
 
@@ -126,12 +126,12 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
         SELECT id, nickname, password FROM users WHERE nickname = ? OR email = ?`,
 		req.Identifier, req.Identifier).Scan(&user.ID, &user.Nickname, &user.Password)
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Invalid credentials")
+		RespondWithError(w, http.StatusUnauthorized, "Invalid credentials")
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Invalid credentials")
+		RespondWithError(w, http.StatusUnauthorized, "Invalid credentials")
 		return
 	}
 
@@ -160,7 +160,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Not logged in")
+		RespondWithError(w, http.StatusBadRequest, "Not logged in")
 		return
 	}
 
@@ -186,7 +186,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := authenticateUser(r)
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Authentication required")
+		RespondWithError(w, http.StatusUnauthorized, "Authentication required")
 		return
 	}
 
@@ -195,7 +195,7 @@ func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
         SELECT id, nickname FROM users WHERE id = ?`,
 		userID).Scan(&user.ID, &user.Nickname)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to get user info")
+		RespondWithError(w, http.StatusInternalServerError, "Failed to get user info")
 		return
 	}
 
@@ -206,7 +206,7 @@ func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
 func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 	rows, err := database.DB.Query("SELECT id, nickname, is_online FROM users")
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to fetch users")
+		RespondWithError(w, http.StatusInternalServerError, "Failed to fetch users")
 		return
 	}
 	defer rows.Close()
@@ -221,7 +221,7 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 			IsOnline bool `json:"isOnline"`
 		}
 		if err := rows.Scan(&user.ID, &user.Nickname, &user.IsOnline); err != nil {
-			respondWithError(w, http.StatusInternalServerError, "Failed to process users")
+			RespondWithError(w, http.StatusInternalServerError, "Failed to process users")
 			return
 		}
 		users = append(users, user)
@@ -238,7 +238,7 @@ func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
         JOIN users u ON p.user_id = u.id
         ORDER BY p.created_at DESC`)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to fetch posts")
+		RespondWithError(w, http.StatusInternalServerError, "Failed to fetch posts")
 		return
 	}
 	defer rows.Close()
@@ -257,7 +257,7 @@ func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
 		var post Post
 		err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.Category, &post.CreatedAt, &post.Author)
 		if err != nil {
-			respondWithError(w, http.StatusInternalServerError, "Failed to process posts")
+			RespondWithError(w, http.StatusInternalServerError, "Failed to process posts")
 			return
 		}
 		posts = append(posts, post)
@@ -270,7 +270,7 @@ func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
 func GetPostHandler(w http.ResponseWriter, r *http.Request) {
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 4 { // ["", "api", "posts", "123"]
-		respondWithError(w, http.StatusNotFound, "Post not found")
+		RespondWithError(w, http.StatusNotFound, "Post not found")
 		return
 	}
 
@@ -292,10 +292,10 @@ func GetPostHandler(w http.ResponseWriter, r *http.Request) {
 		&post.ID, &post.Title, &post.Content, &post.Category, &post.CreatedAt, &post.Author)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			respondWithError(w, http.StatusNotFound, "Post not found")
+			RespondWithError(w, http.StatusNotFound, "Post not found")
 			return
 		}
-		respondWithError(w, http.StatusInternalServerError, "Failed to fetch post")
+		RespondWithError(w, http.StatusInternalServerError, "Failed to fetch post")
 		return
 	}
 
@@ -306,7 +306,7 @@ func GetPostHandler(w http.ResponseWriter, r *http.Request) {
 func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := authenticateUser(r)
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Authentication required")
+		RespondWithError(w, http.StatusUnauthorized, "Authentication required")
 		return
 	}
 
@@ -318,12 +318,12 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 
 	var req PostRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request format")
+		RespondWithError(w, http.StatusBadRequest, "Invalid request format")
 		return
 	}
 
 	if (req.Title == "" || len(req.Title)>20) || req.Content == "" || req.Category == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing required fields")
+		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
 
@@ -333,7 +333,7 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
         VALUES (?, ?, ?, ?, ?)`,
 		postID, userID, req.Category, req.Title, req.Content)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to create post")
+		RespondWithError(w, http.StatusInternalServerError, "Failed to create post")
 		return
 	}
 
@@ -347,7 +347,7 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 	postID := r.URL.Query().Get("post_id")
 	if postID == "" {
-		respondWithError(w, http.StatusBadRequest, "Post ID required")
+		RespondWithError(w, http.StatusBadRequest, "Post ID required")
 		return
 	}
 	fmt.Println(postID)
@@ -360,7 +360,7 @@ func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
         ORDER BY c.created_at ASC`, postID)
 	if err != nil {
 		fmt.Println("22")
-		respondWithError(w, http.StatusInternalServerError, "Failed to fetch comments")
+		RespondWithError(w, http.StatusInternalServerError, "Failed to fetch comments")
 		return
 	}
 	defer rows.Close()
@@ -378,7 +378,7 @@ func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 		err := rows.Scan(&comment.ID, &comment.Content, &comment.CreatedAt, &comment.Author)
 		if err != nil {
 			fmt.Println("22222")
-			respondWithError(w, http.StatusInternalServerError, "Failed to process comments")
+			RespondWithError(w, http.StatusInternalServerError, "Failed to process comments")
 			return
 		}
 		comments = append(comments, comment)
@@ -391,7 +391,7 @@ func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := authenticateUser(r)
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Authentication required")
+		RespondWithError(w, http.StatusUnauthorized, "Authentication required")
 		return
 	}
 
@@ -402,12 +402,12 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 	var req CommentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request format")
+		RespondWithError(w, http.StatusBadRequest, "Invalid request format")
 		return
 	}
 
 	if req.PostID == "" || req.Content == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing required fields")
+		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
 	re := regexp.MustCompile(`<[^>]+>`)
@@ -421,7 +421,7 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
         VALUES (?, ?, ?, ?)`,
 		commentID, req.PostID, userID, sanitizedContent)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to create comment")
+		RespondWithError(w, http.StatusInternalServerError, "Failed to create comment")
 		return
 	}
 
@@ -435,13 +435,13 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := authenticateUser(r)
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Authentication required")
+		RespondWithError(w, http.StatusUnauthorized, "Authentication required")
 		return
 	}
 
 	withUserId := r.URL.Query().Get("with")
 	if withUserId == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing user ID")
+		RespondWithError(w, http.StatusBadRequest, "Missing user ID")
 		return
 	}
 
@@ -470,7 +470,7 @@ func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := database.DB.Query(query, args...)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to fetch messages")
+		RespondWithError(w, http.StatusInternalServerError, "Failed to fetch messages")
 		return
 	}
 	defer rows.Close()
@@ -488,7 +488,7 @@ func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var msg Message
 		if err := rows.Scan(&msg.ID, &msg.SenderId, &msg.Content, &msg.Timestamp, &msg.Sender, &msg.IsRead); err != nil {
-			respondWithError(w, http.StatusInternalServerError, "Failed to process messages")
+			RespondWithError(w, http.StatusInternalServerError, "Failed to process messages")
 			return
 		}
 		messages = append(messages, msg)
@@ -515,7 +515,7 @@ func RateLimitMiddleware(next http.HandlerFunc, limit int, window time.Duration)
 			c.Requests++
 			c.LastSeen = time.Now()
 			if c.Requests > limit {
-			respondWithError(w, http.StatusMethodNotAllowed, "Allot of requset")
+			RespondWithError(w, http.StatusMethodNotAllowed, "Allot of requset")
 				return
 			}
 		}

@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"jj/api"       // Your API handlers
-	"jj/database"  // Your database connection and schema
-	"jj/websocket" // Your WebSocket handlers
+	"jj/database"
+    "jj/websocket" 
 )
 
 func main() {

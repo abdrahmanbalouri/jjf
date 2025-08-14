@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"jj/api"
 	"jj/database"
 	"jj/models"
 
@@ -43,7 +44,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 	err = database.DB.QueryRow("SELECT id, nickname FROM users WHERE id = ?", cookie.Value).Scan(&user.ID, &user.Nickname)
 	if err != nil {
-		log.Printf("Failed to authenticate user with session_id %s: %v", cookie.Value, err)
+		api.RespondWithError(w, http.StatusUnauthorized, "Authentication required")
 		conn.Close()
 		return
 	}
@@ -157,7 +158,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			if err := json.Unmarshal(msg.Payload, &typingData); err != nil {
 				log.Printf("Failed to unmarshal typing message: %v", err)
-			 continue
+				continue
 			}
 			HandleTyping(client, user.ID, user.Nickname, typingData.ReceiverID)
 		case "stop_typing":

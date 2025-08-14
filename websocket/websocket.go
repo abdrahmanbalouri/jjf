@@ -55,6 +55,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 	Clients[client] = true
 	ClientsMutex.Unlock()
 
+	fmt.Println(Clients)
 	// Update online status for all users
 	allUsers := []string{}
 	rows, err := database.DB.Query("SELECT id FROM users")

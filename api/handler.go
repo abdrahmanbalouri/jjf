@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"jj/database" // Import the database package
@@ -390,12 +392,16 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
+	re := regexp.MustCompile(`<[^>]+>`)
+	sanitizedContent := re.ReplaceAllString(req.Content, "")
+	// Trim any extra whitespace
+	sanitizedContent = strings.TrimSpace(sanitizedContent)
 
 	commentID := uuid.New().String()
 	_, err = database.DB.Exec(`
         INSERT INTO comments (id, post_id, user_id, content)
         VALUES (?, ?, ?, ?)`,
-		commentID, req.PostID, userID, req.Content)
+		commentID, req.PostID, userID, sanitizedContent)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Failed to create comment")
 		return

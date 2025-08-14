@@ -629,10 +629,7 @@ button:active {
   color: var(--error-color);
   font-weight: 500;
   padding: 12px;
-  background: #fee2e2;
-  border-radius: var(--border-radius);
-  border: 1px solid #fecaca;
-  margin-bottom: 16px;
+ 
 }
 
 .popup {

@@ -77,7 +77,8 @@ export class PostManager {
                 </div>
                 <div class="post-content">${post.content || ''}</div>
                 <button class="view-comments" data-post-id="${post.id}">
-                    View Comments
+                show
+
                 </button>
             </div>
         `).join('');

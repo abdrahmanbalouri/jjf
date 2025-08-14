@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"jj/api"       // Your API handlers
 	"jj/database"  // Your database connection and schema
@@ -31,7 +32,7 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	// API Routes (using functions from the `api` package)
-	http.HandleFunc("/api/register", api.RegisterHandler)
+	http.HandleFunc("/api/register", api.RateLimitMiddleware(api.RegisterHandler, 5, time.Minute))
 	http.HandleFunc("/api/login", api.LoginHandler)
 	http.HandleFunc("/api/logout", api.LogoutHandler)
 	http.HandleFunc("/api/users/me", api.GetCurrentUserHandler)

@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"jj/database" // Import the database package
@@ -16,6 +17,16 @@ import (
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+)
+
+type Client struct {
+	Requests int
+	LastSeen time.Time
+}
+
+var (
+	clients = make(map[string]*Client)
+	mu      sync.Mutex
 )
 
 // Utility Functions for API responses (can also be in a separate `utils` package)
@@ -257,13 +268,13 @@ func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetPostHandler retrieves a single post by ID.
 func GetPostHandler(w http.ResponseWriter, r *http.Request) {
-	 parts := strings.Split(r.URL.Path, "/")
-    if len(parts) < 4 { // ["", "api", "posts", "123"]
-			respondWithError(w, http.StatusNotFound, "Post not found")
-        return
-    }
+	parts := strings.Split(r.URL.Path, "/")
+	if len(parts) < 4 { // ["", "api", "posts", "123"]
+		respondWithError(w, http.StatusNotFound, "Post not found")
+		return
+	}
 
-    postID := parts[3]
+	postID := parts[3]
 
 	var post struct {
 		ID        string    `json:"id"`
@@ -489,4 +500,26 @@ func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, messages)
+}
+
+func RateLimitMiddleware(next http.HandlerFunc, limit int, window time.Duration) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ip := r.RemoteAddr
+		mu.Lock()
+		defer mu.Unlock()
+
+		c, exists := clients[ip]
+		if !exists || time.Since(c.LastSeen) > window {
+			clients[ip] = &Client{Requests: 1, LastSeen: time.Now()}
+		} else {
+			c.Requests++
+			c.LastSeen = time.Now()
+			if c.Requests > limit {
+			respondWithError(w, http.StatusMethodNotAllowed, "Allot of requset")
+				return
+			}
+		}
+
+		next(w, r)
+	}
 }

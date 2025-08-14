@@ -216,7 +216,7 @@ button {
 /* Responsive */
 @media (max-width: 600px) {
   button {
-    font-size: 14px;
+    font-size: 30px;
     padding: 10px 16px;
     min-width: unset;
     width: 100%;

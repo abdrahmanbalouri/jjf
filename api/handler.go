@@ -44,7 +44,6 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 func authenticateUser(r *http.Request) (string, error) {
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
-		fmt.Println("99")
 		return "", err
 	}
 
@@ -350,7 +349,6 @@ func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 		RespondWithError(w, http.StatusBadRequest, "Post ID required")
 		return
 	}
-	fmt.Println(postID)
 
 	rows, err := database.DB.Query(`
         SELECT c.id, c.content, c.created_at, u.nickname

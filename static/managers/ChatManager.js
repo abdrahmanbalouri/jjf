@@ -49,7 +49,7 @@ export class ChatManager {
         this.socket.onclose = () => {
             console.log('WebSocket disconnected');
             this.app.currentUser = null;
-            
+
             const typingIndicator = document.getElementById('typing-indicator');
 
             console.log(typingIndicator);
@@ -65,6 +65,15 @@ export class ChatManager {
             console.error('WebSocket error:', error);
         };
     }
+    getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${encodeURIComponent(name)}=`);
+        if (parts.length === 2) {
+            return decodeURIComponent(parts.pop().split(';').shift());
+        }
+        return null;
+    }
+
 
     async loadUsers() {
         try {
@@ -128,7 +137,7 @@ export class ChatManager {
 
                 const userId = item.dataset.userId;
                 const userName = item.dataset.role;
-                
+
 
                 this.startConversation(userId, userName);
             });
@@ -298,6 +307,12 @@ export class ChatManager {
     }
 
     handleTypingIndicator(payload) {
+         const token = this.getCookie('session_id');
+        if(token!==this.app.currentUser){
+             
+           this.app.showView('login')
+           return
+        }  
         const typingIndicator = document.getElementById('typing-indicator');
         if (typingIndicator && payload.senderId === this.app.currentConversation) {
             typingIndicator.textContent = `${payload.senderName} is typing`;
@@ -305,6 +320,12 @@ export class ChatManager {
     }
 
     handleStopTyping(payload) {
+         const token = this.getCookie('session_id');
+        if(token!==this.app.currentUser){
+             
+           this.app.showView('login')
+           return
+        }  
         const typingIndicator = document.getElementById('typing-indicator');
         if (typingIndicator && payload.senderId === this.app.currentConversation) {
             typingIndicator.textContent = '';
@@ -333,6 +354,13 @@ export class ChatManager {
     }
 
     async sendMessage(receiverId) {
+        const token = this.getCookie('session_id');
+        if(token!==this.app.currentUser){
+             
+           this.app.showView('login')
+           return
+        }  
+
         const content = document.getElementById('message-content').value;
         const clientMessageId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
 
@@ -351,10 +379,12 @@ export class ChatManager {
     }
 
     handlePrivateMessage(payload) {
-        console.log(payload.senderId);
-
-        console.log(this.app.currentUser);
-
+        const token = this.getCookie('session_id');
+        if(token!==this.app.currentUser){
+             
+           this.app.showView('login')
+           return
+        }  
 
         if (payload.senderId == this.app.currentUser.id && payload.receiverId == this.app.currentConversation) {
             console.log(1111);
@@ -426,6 +456,12 @@ export class ChatManager {
     }
 
     handleMessageRead(payload) {
+         const token = this.getCookie('session_id');
+        if(token!==this.app.currentUser){
+             
+           this.app.showView('login')
+           return
+        }  
         const messageElement = document.querySelector(`.message[data-message-id="${payload.messageId}"] .read-status`);
         if (messageElement) {
             messageElement.textContent = '✓✓';

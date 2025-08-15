@@ -152,7 +152,7 @@ export class PostManager {
                 this.loadComments(postId, 'popup-comments-container');
             } else {
                 const error = await response.json();
-                const err = document.getElementById('post-error2')
+                const err = document.getElementById('comment-error')
               if (error.error == "Authentication required") {
                     throw Error('eror')
                 }

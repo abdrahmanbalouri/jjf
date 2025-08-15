@@ -119,7 +119,9 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	// Listen for messages
-	for {
+	for {  
+
+		  
 		var msg struct {
 			Type    string          `json:"type"`
 			Payload json.RawMessage `json:"payload"`
@@ -128,7 +130,6 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 			log.Printf("WebSocket read error for user %s: %v", user.ID, err)
 			break
 		}
-		fmt.Println(msg)
 
 		switch msg.Type {
 		case "private_message":

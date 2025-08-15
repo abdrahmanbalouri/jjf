@@ -22,6 +22,8 @@ export class ChatManager {
         this.socket.onmessage = (event) => {
             if (!event.data) return;
             const message = JSON.parse(event.data);
+            console.log(message);
+
             switch (message.type) {
                 case 'user_status':
                     this.updateUserStatus(message.userId, message.isOnline);
@@ -44,11 +46,25 @@ export class ChatManager {
                 case 'stop_typing':
                     this.handleStopTyping(message.payload);
                     break;
+                case 'eroor':
+                    let b = document.getElementById('not')
+                    b.textContent =  message.payload.eroor
+                    b.classList.add('show');
+
+                    this.id = setTimeout(() => {
+
+                        b.textContent = ""
+                        not.classList.remove('show');
+
+
+                    }, 2000)
+
+                    break
             }
         };
         this.socket.onclose = () => {
             console.log('WebSocket disconnected');
-           // this.app.currentUser = null;
+            // this.app.currentUser = null;
 
             const typingIndicator = document.getElementById('typing-indicator');
 
@@ -65,12 +81,12 @@ export class ChatManager {
             console.error('WebSocket error:', error);
         };
     }
-   getCookie(name) {
-  return document.cookie
-    .split('; ')
-    .find(row => row.startsWith(name + '='))
-    ?.split('=')[1] || null;
-}
+    getCookie(name) {
+        return document.cookie
+            .split('; ')
+            .find(row => row.startsWith(name + '='))
+            ?.split('=')[1] || null;
+    }
 
 
 
@@ -232,11 +248,11 @@ export class ChatManager {
             messagesContainer.onscroll = this.throttle(() => {
                 console.log(messagesContainer.scrollTop);
 
-               
-                    if (messagesContainer.scrollTop <= 100 && !this.isLoadingMessages) {
-                        this.loadMoreMessages(userId);
-                    }
-          
+
+                if (messagesContainer.scrollTop <= 100 && !this.isLoadingMessages) {
+                    this.loadMoreMessages(userId);
+                }
+
 
             }, 2000);
         }
@@ -251,7 +267,7 @@ export class ChatManager {
 
     async loadMessages(userId, beforeTimestamp = null) {
         console.log(this.app.currentUser.id);
-        
+
         try {
             this.isLoadingMessages = true;
             let url = `/api/messages?with=${userId}&limit=10`;
@@ -309,16 +325,16 @@ export class ChatManager {
     }
 
     handleTypingIndicator(payload) {
-         const token = this.getCookie('session_id');
-         console.log(token);
-         
-          if(token!==this.app.currentUser.id){
-              if (this.app.socket) {
-                    this.app.socket.close(); 
-                }
-           this.app.showView('login')
-           return
-        }  
+        const token = this.getCookie('session_id');
+        console.log(token);
+
+        if (token !== this.app.currentUser.id) {
+            if (this.app.socket) {
+                this.app.socket.close();
+            }
+            this.app.showView('login')
+            return
+        }
         const typingIndicator = document.getElementById('typing-indicator');
         if (typingIndicator && payload.senderId === this.app.currentConversation) {
             typingIndicator.textContent = `${payload.senderName} is typing`;
@@ -326,14 +342,14 @@ export class ChatManager {
     }
 
     handleStopTyping(payload) {
-         const token = this.getCookie('session_id');
-        if(token!==this.app.currentUser.id){
-              if (this.app.socket) {
-                    this.app.socket.close(); // Close WebSocket connection
-                }
-           this.app.showView('login')
-           return
-        }  
+        const token = this.getCookie('session_id');
+        if (token !== this.app.currentUser.id) {
+            if (this.app.socket) {
+                this.app.socket.close(); // Close WebSocket connection
+            }
+            this.app.showView('login')
+            return
+        }
         const typingIndicator = document.getElementById('typing-indicator');
         if (typingIndicator && payload.senderId === this.app.currentConversation) {
             typingIndicator.textContent = '';
@@ -362,19 +378,19 @@ export class ChatManager {
     }
 
     async sendMessage(receiverId) {
-        
-        
+
+
         const token = this.getCookie('session_id');
-      
-        
-        
-        if(token!==this.app.currentUser.id){
-             if (this.app.socket) {
-                    this.app.socket.close(); // Close WebSocket connection
-                }
-           this.app.showView('login')
-           return
-        }  
+
+
+
+        if (token !== this.app.currentUser.id) {
+            if (this.app.socket) {
+                this.app.socket.close(); // Close WebSocket connection
+            }
+            this.app.showView('login')
+            return
+        }
 
         const content = document.getElementById('message-content').value;
         const clientMessageId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
@@ -395,13 +411,13 @@ export class ChatManager {
 
     handlePrivateMessage(payload) {
         const token = this.getCookie('session_id');
-        if(token!==this.app.currentUser.id){
-              if (this.app.socket) {
-                    this.app.socket.close(); // Close WebSocket connection
-                }
-           this.app.showView('login')
-           return
-        }  
+        if (token !== this.app.currentUser.id) {
+            if (this.app.socket) {
+                this.app.socket.close(); // Close WebSocket connection
+            }
+            this.app.showView('login')
+            return
+        }
 
         if (payload.senderId == this.app.currentUser.id && payload.receiverId == this.app.currentConversation) {
             console.log(1111);
@@ -473,14 +489,14 @@ export class ChatManager {
     }
 
     handleMessageRead(payload) {
-         const token = this.getCookie('session_id');
-        if(token!==this.app.currentUser.id){
-              if (this.app.socket) {
-                    this.app.socket.close(); // Close WebSocket connection
-                }
-           this.app.showView('login')
-           return
-        }  
+        const token = this.getCookie('session_id');
+        if (token !== this.app.currentUser.id) {
+            if (this.app.socket) {
+                this.app.socket.close();
+            }
+            this.app.showView('login')
+            return
+        }
         const messageElement = document.querySelector(`.message[data-message-id="${payload.messageId}"] .read-status`);
         if (messageElement) {
             messageElement.textContent = '✓✓';

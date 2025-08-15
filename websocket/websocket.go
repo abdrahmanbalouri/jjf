@@ -105,7 +105,6 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 	BroadcastOnlineUsers()
 
 	defer func() {
-		fmt.Println("445444")
 		ClientsMutex.Lock()
 		delete(Clients, client)
 		ClientsMutex.Unlock()
@@ -127,6 +126,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 			Type    string          `json:"type"`
 			Payload json.RawMessage `json:"payload"`
 		}
+		 
 		if err := conn.ReadJSON(&msg); err != nil {
 			log.Printf("WebSocket read error for user %s: %v", user.ID, err)
 			break
@@ -235,6 +235,17 @@ func BroadcastOnlineUsers() {
 // HandlePrivateMessage processes a private message from one user to another.
 func HandlePrivateMessage(client *models.Client, senderID, receiverID, content, clientMessageID string) {
 	messageID := uuid.New().String()
+		eroor := map[string]interface{}{
+		"type": "eroor",
+		"payload": map[string]interface{}{
+			"eroor":       "try  a better message",
+			
+		},
+	}
+	if(len(content)>10 || len(content)<2){
+          client.Conn.WriteJSON(eroor)
+		  return
+	}
 	_, err := database.DB.Exec(`
         INSERT INTO private_messages (id, sender_id, receiver_id, content, is_read)
         VALUES (?, ?, ?, ?, ?)`,

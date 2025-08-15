@@ -75,7 +75,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Nickname == "" || req.Email == "" || req.Password == "" {
+	if (len(req.Nickname)<2 || len(req.Nickname)>10) || (len(req.FirstName)<2 || len(req.FirstName)>10) ||(len(req.LastName)<2 || len(req.LastName)>10) ||(len(req.Password)<2 || len(req.Password)>10)  {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
@@ -321,17 +321,25 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 		RespondWithError(w, http.StatusBadRequest, "Invalid request format")
 		return
 	}
-
-	if (len(req.Title)<5 || len(req.Title)>12)  ||(len(req.Content)<5 || len(req.Content)>30) || req.Category == "" {
+        
+	
+	if (len(req.Title)<5 || len(req.Title)>50)  ||(len(req.Content)<5 || len(req.Content)>50) || req.Category == "" {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
+         re := regexp.MustCompile(`<[^>]+>`)
+	title := re.ReplaceAllString(req.Title, "")
+		content := re.ReplaceAllString(req.Title, "")
+
+	// Trim any extra whitespace
+	title = strings.TrimSpace(title)
+		content = strings.TrimSpace(content)
 
 	postID := uuid.New().String()
 	_, err = database.DB.Exec(`
         INSERT INTO posts (id, user_id, category, title, content)
         VALUES (?, ?, ?, ?, ?)`,
-		postID, userID, req.Category, req.Title, req.Content)
+		postID, userID, req.Category, title, content)
 	if err != nil {
 		RespondWithError(w, http.StatusInternalServerError, "Failed to create post")
 		return

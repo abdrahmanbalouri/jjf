@@ -48,7 +48,7 @@ export class ChatManager {
         };
         this.socket.onclose = () => {
             console.log('WebSocket disconnected');
-            this.app.currentUser = null;
+           // this.app.currentUser = null;
 
             const typingIndicator = document.getElementById('typing-indicator');
 
@@ -157,6 +157,7 @@ export class ChatManager {
     }
 
     async startConversation(userId, userName) {
+        this.app.initWebSocket()
         this.app.currentConversation = userId;
         const form = document.getElementById('message-form');
         if (form) {
@@ -231,11 +232,11 @@ export class ChatManager {
             messagesContainer.onscroll = this.throttle(() => {
                 console.log(messagesContainer.scrollTop);
 
-                setInterval(() => {
+               
                     if (messagesContainer.scrollTop <= 100 && !this.isLoadingMessages) {
                         this.loadMoreMessages(userId);
                     }
-                }, 2000)
+          
 
             }, 2000);
         }
@@ -249,6 +250,8 @@ export class ChatManager {
     }
 
     async loadMessages(userId, beforeTimestamp = null) {
+        console.log(this.app.currentUser.id);
+        
         try {
             this.isLoadingMessages = true;
             let url = `/api/messages?with=${userId}&limit=10`;
@@ -310,7 +313,9 @@ export class ChatManager {
          console.log(token);
          
           if(token!==this.app.currentUser.id){
-             
+              if (this.app.socket) {
+                    this.app.socket.close(); 
+                }
            this.app.showView('login')
            return
         }  
@@ -323,7 +328,9 @@ export class ChatManager {
     handleStopTyping(payload) {
          const token = this.getCookie('session_id');
         if(token!==this.app.currentUser.id){
-             
+              if (this.app.socket) {
+                    this.app.socket.close(); // Close WebSocket connection
+                }
            this.app.showView('login')
            return
         }  
@@ -362,7 +369,9 @@ export class ChatManager {
         
         
         if(token!==this.app.currentUser.id){
-            
+             if (this.app.socket) {
+                    this.app.socket.close(); // Close WebSocket connection
+                }
            this.app.showView('login')
            return
         }  
@@ -387,7 +396,9 @@ export class ChatManager {
     handlePrivateMessage(payload) {
         const token = this.getCookie('session_id');
         if(token!==this.app.currentUser.id){
-             
+              if (this.app.socket) {
+                    this.app.socket.close(); // Close WebSocket connection
+                }
            this.app.showView('login')
            return
         }  
@@ -464,7 +475,9 @@ export class ChatManager {
     handleMessageRead(payload) {
          const token = this.getCookie('session_id');
         if(token!==this.app.currentUser.id){
-             
+              if (this.app.socket) {
+                    this.app.socket.close(); // Close WebSocket connection
+                }
            this.app.showView('login')
            return
         }  

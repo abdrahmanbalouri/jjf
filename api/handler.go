@@ -75,7 +75,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (len(req.Nickname)<2 || len(req.Nickname)>10) || (len(req.FirstName)<2 || len(req.FirstName)>10) ||(len(req.LastName)<2 || len(req.LastName)>10) ||(len(req.Password)<2 || len(req.Password)>10)  {
+	if (len(req.Nickname)<2 || len(req.Nickname)>10) || (len(req.FirstName)<2 || len(req.FirstName)>10) ||(len(req.LastName)<2 || len(req.LastName)>10) ||(len(req.Password)<2 || len(req.Password)>10) || (req.Age>100 ||req.Age<20)  {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
@@ -85,12 +85,17 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		RespondWithError(w, http.StatusInternalServerError, "Failed to hash password")
 		return
 	}
-
+           
 	id := uuid.New().String()
+	  nickname:= models.Skip(req.Nickname)
+	  Firstname:= models.Skip(req.FirstName)
+	  Lastname := models.Skip(req.LastName)
+
+
 	_, err = database.DB.Exec(`
         INSERT INTO users (id, nickname, age, gender, first_name, last_name, email, password)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-		id, req.Nickname, req.Age, req.Gender, req.FirstName, req.LastName, req.Email, string(hashedPassword))
+		id, nickname ,req.Age, req.Gender, Firstname, Lastname, req.Email, string(hashedPassword))
 	if err != nil {
 		if database.IsDuplicateKeyError(err) { // Use database.IsDuplicateKeyError
 			RespondWithError(w, http.StatusConflict, "Nickname or email already exists")

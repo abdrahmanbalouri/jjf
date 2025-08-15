@@ -242,14 +242,15 @@ func HandlePrivateMessage(client *models.Client, senderID, receiverID, content, 
 			
 		},
 	}
-	if(len(content)>10 || len(content)<2){
+	if(len(content)>30 || content == ""){
           client.Conn.WriteJSON(eroor)
 		  return
 	}
+	  Contentformessage := models.Skip(content)
 	_, err := database.DB.Exec(`
         INSERT INTO private_messages (id, sender_id, receiver_id, content, is_read)
         VALUES (?, ?, ?, ?, ?)`,
-		messageID, senderID, receiverID, content, false)
+		messageID, senderID, receiverID, Contentformessage, false)
 	if err != nil {
 		log.Println("Failed to save message:", err)
 		return
@@ -270,7 +271,7 @@ func HandlePrivateMessage(client *models.Client, senderID, receiverID, content, 
 			"senderId":        senderID,
 			"senderName":      senderNickname,
 			"receiverId":      receiverID,
-			"content":         content,
+			"content":         Contentformessage,
 			"timestamp":       time.Now().Format(time.RFC3339),
 			"isRead":          false,
 		},

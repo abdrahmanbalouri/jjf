@@ -17,9 +17,12 @@ export class UIManager {
                 this.app.postManager.setupPostEventListeners();
                 this.app.loadPosts();
                 this.app.showAuthenticatedUI()
+                this.app.loadUsers()
                 break;
             case 'login':
                 appContainer.innerHTML = login;
+                this.deleteCookie("session_id");
+
                 break;
             case 'register':
                 appContainer.innerHTML = register;
@@ -28,6 +31,12 @@ export class UIManager {
         }
         this.app.authManager.setupAuthEventListeners(); // Reattach auth listeners
     }
+     deleteCookie(name, path = "/") {
+        console.log(222);
+        
+  document.cookie = name + "=; Max-Age=0; path=" + path;
+}
+
 
     showAuthenticatedUI() {
         document.getElementById('auth-links').classList.add('hidden');

@@ -140,14 +140,15 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("Failed to update user status: %v", err)
 	}
-
-	http.SetCookie(w, &http.Cookie{
-		Name:     "session_id",
-		Value:    user.ID,
-		Path:     "/",
-		HttpOnly: true,
-		MaxAge:   86400,
-	})
+http.SetCookie(w, &http.Cookie{
+    Name:     "session_id",      
+    Value:    user.ID,          
+    Path:     "/",              
+    HttpOnly: false,            
+    Secure:   false,             
+    SameSite: http.SameSiteLaxMode, 
+    MaxAge:   86400,             
+})
 
 	respondWithJSON(w, http.StatusOK, map[string]interface{}{
 		"message": "Login successful",
@@ -321,7 +322,7 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (req.Title == "" || len(req.Title)>20) || req.Content == "" || req.Category == "" {
+	if (len(req.Title)<5 || len(req.Title)>12)  ||(len(req.Content)<5 || len(req.Content)>30) || req.Category == "" {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
@@ -405,6 +406,10 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.PostID == "" || req.Content == "" {
+		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
+		return
+	}
+	if  len(req.Content)<3 || len(req.Content)>30{
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}

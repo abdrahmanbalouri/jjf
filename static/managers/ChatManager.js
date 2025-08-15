@@ -65,14 +65,13 @@ export class ChatManager {
             console.error('WebSocket error:', error);
         };
     }
-    getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${encodeURIComponent(name)}=`);
-        if (parts.length === 2) {
-            return decodeURIComponent(parts.pop().split(';').shift());
-        }
-        return null;
-    }
+   getCookie(name) {
+  return document.cookie
+    .split('; ')
+    .find(row => row.startsWith(name + '='))
+    ?.split('=')[1] || null;
+}
+
 
 
     async loadUsers() {
@@ -308,7 +307,9 @@ export class ChatManager {
 
     handleTypingIndicator(payload) {
          const token = this.getCookie('session_id');
-        if(token!==this.app.currentUser){
+         console.log(token);
+         
+          if(token!==this.app.currentUser.id){
              
            this.app.showView('login')
            return
@@ -321,7 +322,7 @@ export class ChatManager {
 
     handleStopTyping(payload) {
          const token = this.getCookie('session_id');
-        if(token!==this.app.currentUser){
+        if(token!==this.app.currentUser.id){
              
            this.app.showView('login')
            return
@@ -354,9 +355,14 @@ export class ChatManager {
     }
 
     async sendMessage(receiverId) {
+        
+        
         const token = this.getCookie('session_id');
-        if(token!==this.app.currentUser){
-             
+      
+        
+        
+        if(token!==this.app.currentUser.id){
+            
            this.app.showView('login')
            return
         }  
@@ -380,7 +386,7 @@ export class ChatManager {
 
     handlePrivateMessage(payload) {
         const token = this.getCookie('session_id');
-        if(token!==this.app.currentUser){
+        if(token!==this.app.currentUser.id){
              
            this.app.showView('login')
            return
@@ -457,7 +463,7 @@ export class ChatManager {
 
     handleMessageRead(payload) {
          const token = this.getCookie('session_id');
-        if(token!==this.app.currentUser){
+        if(token!==this.app.currentUser.id){
              
            this.app.showView('login')
            return

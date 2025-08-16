@@ -114,6 +114,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Failed to set user %s offline: %v", user.ID, err)
 		}
+		fmt.Println("khroj")
 		BroadcastUserStatus(user.ID, false)
 		BroadcastOnlineUsers()
 	}()

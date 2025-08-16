@@ -77,6 +77,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	if (len(req.Nickname) < 2 || len(req.Nickname) > 10) || (len(req.FirstName) < 2 || len(req.FirstName) > 10) || (len(req.LastName) < 2 || len(req.LastName) > 10) || (len(req.Password) < 2 || len(req.Password) > 10) || (req.Age > 100 || req.Age < 20) {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
+		fmt.Println("2222")
 		return
 	}
 
@@ -103,7 +104,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		RespondWithError(w, http.StatusInternalServerError, "Failed to create user")
 		return
 	}
-
+           fmt.Println(33333)
 	respondWithJSON(w, http.StatusCreated, map[string]string{"message": "User created successfully"})
 }
 
@@ -236,6 +237,7 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetPostsHandler retrieves a list of all posts.
 func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
+
 	rows, err := database.DB.Query(`
         SELECT p.id, p.title, p.content, p.category, p.created_at, u.nickname
         FROM posts p
@@ -519,7 +521,6 @@ func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 func RateLimitMiddleware(next http.HandlerFunc, limit int, window time.Duration) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ip := r.RemoteAddr 
-
 		mu.Lock()
 		defer mu.Unlock()
 
@@ -527,22 +528,25 @@ func RateLimitMiddleware(next http.HandlerFunc, limit int, window time.Duration)
 
 		if !exists {
 			clients[ip] = &Client{Requests: 1, LastSeen: time.Now()}
-			return
-		}
+			
+		}else{
 
-		if time.Since(c.LastSeen) > window {
-			c.Requests = 1
-			c.LastSeen = time.Now()
-		} else {
-			fmt.Println(c.Requests)
-			c.Requests++
-			if c.Requests > limit {
-				c.Requests = 0
+			if time.Since(c.LastSeen) > window {
+				c.Requests = 1
 				c.LastSeen = time.Now()
-				RespondWithError(w, http.StatusMethodNotAllowed, "A lot of requests")
-				return
+			} else {
+				fmt.Println(c.Requests)
+				c.Requests++
+				if c.Requests > limit {
+					fmt.Println("eror")
+					c.Requests = 0
+					c.LastSeen = time.Now()
+					RespondWithError(w, http.StatusMethodNotAllowed, "A lot of requests")
+					return
+				}
 			}
 		}
+
 
 		next(w, r)
 	}

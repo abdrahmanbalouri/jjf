@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"jj/api"       // Your API handlers
+	"jj/api" // Your API handlers
 	"jj/database"
-    "jj/websocket" 
+	"jj/websocket"
 )
 
 func main() {
@@ -33,15 +33,15 @@ func main() {
 
 	// API Routes (using functions from the `api` package)
 	http.HandleFunc("/api/register", api.RateLimitMiddleware(api.RegisterHandler, 5, time.Minute))
-	http.HandleFunc("/api/login", api.RateLimitMiddleware(api.LoginHandler,5,time.Minute))
+	http.HandleFunc("/api/login", api.RateLimitMiddleware(api.LoginHandler, 5, time.Minute))
 	http.HandleFunc("/api/logout", api.LogoutHandler)
 	http.HandleFunc("/api/users/me", api.GetCurrentUserHandler)
 	http.HandleFunc("/api/users", api.GetUsersHandler)
 	http.HandleFunc("/api/posts", api.GetPostsHandler)
-	http.HandleFunc("/api/posts/create", api.RateLimitMiddleware(api.CreatePostHandler,5,time.Minute))
+	http.HandleFunc("/api/posts/create", api.RateLimitMiddleware(api.CreatePostHandler, 5, time.Minute))
 	http.HandleFunc("/api/posts/{id}", api.GetPostHandler)
 	http.HandleFunc("/api/getcomments", api.GetCommentsHandler)
-	http.HandleFunc("/api/comments", api.RateLimitMiddleware(api.CreateCommentHandler,5,time.Minute))
+	http.HandleFunc("/api/comments", api.RateLimitMiddleware(api.CreateCommentHandler, 5, time.Minute))
 	http.HandleFunc("/api/messages", api.GetMessagesHandler)
 
 	http.HandleFunc("/ws", websocket.WsHandler)

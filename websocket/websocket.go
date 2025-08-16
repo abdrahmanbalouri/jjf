@@ -29,9 +29,9 @@ var (
 func WsHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
 	fmt.Println(k)
-	fmt.Println("zabii")
-	if k != "*/*" {
-
+	
+	if k != "" {
+  fmt.Println(k)
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return
 	}

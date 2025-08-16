@@ -60,8 +60,7 @@ func authenticateUser(r *http.Request) (string, error) {
 // RegisterHandler handles new user registration.
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	fmt.Println(k)
-	fmt.Println("zabii")
+
 	if k != "*/*" {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
@@ -119,8 +118,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 // LoginHandler handles user login.
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	fmt.Println(k)
-	fmt.Println("zabii")
+
 	if k != "*/*" {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
@@ -180,8 +178,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 // LogoutHandler handles user logout.
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	fmt.Println(k)
-	fmt.Println("zabii")
+
 	if k != "*/*" {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
@@ -214,11 +211,8 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 // GetCurrentUserHandler retrieves the currently authenticated user's information.
 func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	fmt.Println(k)
-	fmt.Println("zabii")
 	if k != "*/*" {
-
-		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+	http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return
 	}
 	userID, err := authenticateUser(r)
@@ -270,8 +264,7 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 // GetPostsHandler retrieves a list of all posts.
 func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	fmt.Println(k)
-	fmt.Println("zabii")
+	
 	if k != "*/*" {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
@@ -314,8 +307,7 @@ func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
 // GetPostHandler retrieves a single post by ID.
 func GetPostHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	fmt.Println(k)
-	fmt.Println("zabii")
+	
 	if k != "*/*" {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
@@ -358,8 +350,7 @@ func GetPostHandler(w http.ResponseWriter, r *http.Request) {
 // CreatePostHandler creates a new post.
 func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	fmt.Println(k)
-	fmt.Println("zabii")
+	
 	if k != "*/*" {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
@@ -414,8 +405,7 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 // GetCommentsHandler retrieves comments for a specific post.
 func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	fmt.Println(k)
-	fmt.Println("zabii")
+	
 	if k != "*/*" {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
@@ -466,8 +456,7 @@ func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 // CreateCommentHandler creates a new comment for a post.
 func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	fmt.Println(k)
-	fmt.Println("zabii")
+	
 	if k != "*/*" {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
@@ -522,8 +511,7 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 // GetMessagesHandler retrieves private messages between two users.
 func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	fmt.Println(k)
-	fmt.Println("zabii")
+	
 	if k != "*/*" {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303

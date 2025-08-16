@@ -59,6 +59,14 @@ func authenticateUser(r *http.Request) (string, error) {
 
 // RegisterHandler handles new user registration.
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	k := r.Header.Get("Accept")
+	fmt.Println(k)
+	fmt.Println("zabii")
+	if k != "*/*" {
+
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
 	type RegisterRequest struct {
 		Nickname  string `json:"nickname"`
 		Age       int    `json:"age"`
@@ -104,12 +112,20 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		RespondWithError(w, http.StatusInternalServerError, "Failed to create user")
 		return
 	}
-           fmt.Println(33333)
+	fmt.Println(33333)
 	respondWithJSON(w, http.StatusCreated, map[string]string{"message": "User created successfully"})
 }
 
 // LoginHandler handles user login.
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	k := r.Header.Get("Accept")
+	fmt.Println(k)
+	fmt.Println("zabii")
+	if k != "*/*" {
+
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
 	type LoginRequest struct {
 		Identifier string `json:"identifier"`
 		Password   string `json:"password"`
@@ -163,6 +179,14 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 // LogoutHandler handles user logout.
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	k := r.Header.Get("Accept")
+	fmt.Println(k)
+	fmt.Println("zabii")
+	if k != "*/*" {
+
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
 		RespondWithError(w, http.StatusBadRequest, "Not logged in")
@@ -189,6 +213,14 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetCurrentUserHandler retrieves the currently authenticated user's information.
 func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
+	k := r.Header.Get("Accept")
+	fmt.Println(k)
+	fmt.Println("zabii")
+	if k != "*/*" {
+
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
 	userID, err := authenticateUser(r)
 	if err != nil {
 		RespondWithError(w, http.StatusUnauthorized, "Authentication required")
@@ -237,7 +269,14 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetPostsHandler retrieves a list of all posts.
 func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
+	k := r.Header.Get("Accept")
+	fmt.Println(k)
+	fmt.Println("zabii")
+	if k != "*/*" {
 
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
 	rows, err := database.DB.Query(`
         SELECT p.id, p.title, p.content, p.category, p.created_at, u.nickname
         FROM posts p
@@ -274,6 +313,14 @@ func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetPostHandler retrieves a single post by ID.
 func GetPostHandler(w http.ResponseWriter, r *http.Request) {
+	k := r.Header.Get("Accept")
+	fmt.Println(k)
+	fmt.Println("zabii")
+	if k != "*/*" {
+
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 4 { // ["", "api", "posts", "123"]
 		RespondWithError(w, http.StatusNotFound, "Post not found")
@@ -310,6 +357,14 @@ func GetPostHandler(w http.ResponseWriter, r *http.Request) {
 
 // CreatePostHandler creates a new post.
 func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
+	k := r.Header.Get("Accept")
+	fmt.Println(k)
+	fmt.Println("zabii")
+	if k != "*/*" {
+
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
 	userID, err := authenticateUser(r)
 	if err != nil {
 		RespondWithError(w, http.StatusUnauthorized, "Authentication required")
@@ -358,6 +413,15 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetCommentsHandler retrieves comments for a specific post.
 func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
+	k := r.Header.Get("Accept")
+	fmt.Println(k)
+	fmt.Println("zabii")
+	if k != "*/*" {
+
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
+
 	postID := r.URL.Query().Get("post_id")
 	if postID == "" {
 		RespondWithError(w, http.StatusBadRequest, "Post ID required")
@@ -401,6 +465,14 @@ func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 
 // CreateCommentHandler creates a new comment for a post.
 func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
+	k := r.Header.Get("Accept")
+	fmt.Println(k)
+	fmt.Println("zabii")
+	if k != "*/*" {
+
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
 	userID, err := authenticateUser(r)
 	if err != nil {
 		RespondWithError(w, http.StatusUnauthorized, "Authentication required")
@@ -449,6 +521,14 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetMessagesHandler retrieves private messages between two users.
 func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
+	k := r.Header.Get("Accept")
+	fmt.Println(k)
+	fmt.Println("zabii")
+	if k != "*/*" {
+
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
 	userID, err := authenticateUser(r)
 	if err != nil {
 		RespondWithError(w, http.StatusUnauthorized, "Authentication required")
@@ -520,7 +600,7 @@ func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 
 func RateLimitMiddleware(next http.HandlerFunc, limit int, window time.Duration) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ip := r.RemoteAddr 
+		ip := r.RemoteAddr
 		mu.Lock()
 		defer mu.Unlock()
 
@@ -528,9 +608,7 @@ func RateLimitMiddleware(next http.HandlerFunc, limit int, window time.Duration)
 
 		if !exists {
 			clients[ip] = &Client{Requests: 1, LastSeen: time.Now()}
-			
-		}else{
-
+		} else {
 			if time.Since(c.LastSeen) > window {
 				c.Requests = 1
 				c.LastSeen = time.Now()
@@ -546,7 +624,6 @@ func RateLimitMiddleware(next http.HandlerFunc, limit int, window time.Duration)
 				}
 			}
 		}
-
 
 		next(w, r)
 	}

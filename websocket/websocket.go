@@ -27,6 +27,14 @@ var (
 
 // WsHandler manages WebSocket connections.
 func WsHandler(w http.ResponseWriter, r *http.Request) {
+	k := r.Header.Get("Accept")
+	fmt.Println(k)
+	fmt.Println("zabii")
+	if k != "*/*" {
+
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
 	conn, err := Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("WebSocket upgrade error:", err)
@@ -120,14 +128,13 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	// Listen for messages
-	for {  
+	for {
 
-		  
 		var msg struct {
 			Type    string          `json:"type"`
 			Payload json.RawMessage `json:"payload"`
 		}
-		 
+
 		if err := conn.ReadJSON(&msg); err != nil {
 			log.Printf("WebSocket read error for user %s: %v", user.ID, err)
 			break
@@ -236,18 +243,17 @@ func BroadcastOnlineUsers() {
 // HandlePrivateMessage processes a private message from one user to another.
 func HandlePrivateMessage(client *models.Client, senderID, receiverID, content, clientMessageID string) {
 	messageID := uuid.New().String()
-		eroor := map[string]interface{}{
+	eroor := map[string]interface{}{
 		"type": "eroor",
 		"payload": map[string]interface{}{
-			"eroor":       "try  a better message",
-			
+			"eroor": "try  a better message",
 		},
 	}
-	if(len(content)>30 || content == ""){
-          client.Conn.WriteJSON(eroor)
-		  return
+	if len(content) > 30 || content == "" {
+		client.Conn.WriteJSON(eroor)
+		return
 	}
-	  Contentformessage := models.Skip(content)
+	Contentformessage := models.Skip(content)
 	_, err := database.DB.Exec(`
         INSERT INTO private_messages (id, sender_id, receiver_id, content, is_read)
         VALUES (?, ?, ?, ?, ?)`,

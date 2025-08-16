@@ -75,7 +75,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (len(req.Nickname)<2 || len(req.Nickname)>10) || (len(req.FirstName)<2 || len(req.FirstName)>10) ||(len(req.LastName)<2 || len(req.LastName)>10) ||(len(req.Password)<2 || len(req.Password)>10) || (req.Age>100 ||req.Age<20)  {
+	if (len(req.Nickname) < 2 || len(req.Nickname) > 10) || (len(req.FirstName) < 2 || len(req.FirstName) > 10) || (len(req.LastName) < 2 || len(req.LastName) > 10) || (len(req.Password) < 2 || len(req.Password) > 10) || (req.Age > 100 || req.Age < 20) {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
@@ -85,17 +85,16 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		RespondWithError(w, http.StatusInternalServerError, "Failed to hash password")
 		return
 	}
-           
-	id := uuid.New().String()
-	  nickname:= models.Skip(req.Nickname)
-	  Firstname:= models.Skip(req.FirstName)
-	  Lastname := models.Skip(req.LastName)
 
+	id := uuid.New().String()
+	nickname := models.Skip(req.Nickname)
+	Firstname := models.Skip(req.FirstName)
+	Lastname := models.Skip(req.LastName)
 
 	_, err = database.DB.Exec(`
         INSERT INTO users (id, nickname, age, gender, first_name, last_name, email, password)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-		id, nickname ,req.Age, req.Gender, Firstname, Lastname, req.Email, string(hashedPassword))
+		id, nickname, req.Age, req.Gender, Firstname, Lastname, req.Email, string(hashedPassword))
 	if err != nil {
 		if database.IsDuplicateKeyError(err) { // Use database.IsDuplicateKeyError
 			RespondWithError(w, http.StatusConflict, "Nickname or email already exists")
@@ -145,15 +144,15 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("Failed to update user status: %v", err)
 	}
-http.SetCookie(w, &http.Cookie{
-    Name:     "session_id",      
-    Value:    user.ID,          
-    Path:     "/",              
-    HttpOnly: false,            
-    Secure:   false,             
-    SameSite: http.SameSiteLaxMode, 
-    MaxAge:   86400,             
-})
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_id",
+		Value:    user.ID,
+		Path:     "/",
+		HttpOnly: false,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   86400,
+	})
 
 	respondWithJSON(w, http.StatusOK, map[string]interface{}{
 		"message": "Login successful",
@@ -326,19 +325,18 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 		RespondWithError(w, http.StatusBadRequest, "Invalid request format")
 		return
 	}
-        
-	
-	if (len(req.Title)<5 || len(req.Title)>50)  ||(len(req.Content)<5 || len(req.Content)>50) || req.Category == "" {
+
+	if (len(req.Title) < 5 || len(req.Title) > 50) || (len(req.Content) < 5 || len(req.Content) > 50) || req.Category == "" {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
-         re := regexp.MustCompile(`<[^>]+>`)
+	re := regexp.MustCompile(`<[^>]+>`)
 	title := re.ReplaceAllString(req.Title, "")
-		content := re.ReplaceAllString(req.Title, "")
+	content := re.ReplaceAllString(req.Title, "")
 
 	// Trim any extra whitespace
 	title = strings.TrimSpace(title)
-		content = strings.TrimSpace(content)
+	content = strings.TrimSpace(content)
 
 	postID := uuid.New().String()
 	_, err = database.DB.Exec(`
@@ -422,7 +420,7 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
-	if  len(req.Content)<3 || len(req.Content)>30{
+	if len(req.Content) < 3 || len(req.Content) > 30 {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
@@ -520,18 +518,28 @@ func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 
 func RateLimitMiddleware(next http.HandlerFunc, limit int, window time.Duration) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ip := r.RemoteAddr
+		ip := r.RemoteAddr 
+
 		mu.Lock()
 		defer mu.Unlock()
 
 		c, exists := clients[ip]
-		if !exists || time.Since(c.LastSeen) > window {
+
+		if !exists {
 			clients[ip] = &Client{Requests: 1, LastSeen: time.Now()}
-		} else {
-			c.Requests++
+			return
+		}
+
+		if time.Since(c.LastSeen) > window {
+			c.Requests = 1
 			c.LastSeen = time.Now()
+		} else {
+			fmt.Println(c.Requests)
+			c.Requests++
 			if c.Requests > limit {
-			RespondWithError(w, http.StatusMethodNotAllowed, "Allot of requset")
+				c.Requests = 0
+				c.LastSeen = time.Now()
+				RespondWithError(w, http.StatusMethodNotAllowed, "A lot of requests")
 				return
 			}
 		}

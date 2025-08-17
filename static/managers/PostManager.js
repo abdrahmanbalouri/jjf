@@ -29,6 +29,26 @@ export class PostManager {
     }
 
     async handlePostCreate(e) {
+           const token = this.getCookie('session_id');
+        try{
+
+            const response = await fetch(`/api/auto?with=${token}`);
+              if (!response.ok) throw new Error('Failed to load users');
+            const id = await response.json();
+            console.log(id,'--------------------------');
+            
+                 
+              if (id !== this.app.currentUser.id) {
+             if (this.app.socket) {
+                this.app.socket.close(); 
+            }
+           this.app.authManager.handleLogout()
+            return
+        }
+        }catch (err){
+           console.log(err);
+           
+        }
         e.preventDefault();
         const title = document.getElementById('post-title').value;
         const content = document.getElementById('post-content').value;
@@ -63,6 +83,12 @@ export class PostManager {
         } catch (error) {
            this.app.authManager.handleLogout()
         }
+    }
+      getCookie(name) {
+        return document.cookie
+            .split('; ')
+            .find(row => row.startsWith(name + '='))
+            ?.split('=')[1] || null;
     }
 
     renderPosts(posts) {
@@ -134,6 +160,26 @@ export class PostManager {
     }
 
     async handleCommentCreate(e) {
+           const token = this.getCookie('session_id');
+        try{
+
+            const response = await fetch(`/api/auto?with=${token}`);
+              if (!response.ok) throw new Error('Failed to load users');
+            const id = await response.json();
+            console.log(id,'--------------------------');
+            
+                 
+              if (id !== this.app.currentUser.id) {
+             if (this.app.socket) {
+                this.app.socket.close(); 
+            }
+           this.app.authManager.handleLogout()
+            return
+        }
+        }catch (err){
+           console.log(err);
+           
+        }
         e.preventDefault();
         const content = document.getElementById('popup-comment-content').value;
         const postId = e.target.dataset.postId;

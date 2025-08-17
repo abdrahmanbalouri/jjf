@@ -356,21 +356,25 @@ export class ChatManager {
     }
 
     async handleStopTyping(payload) {
-       const token = this.getCookie('session_id');
+        const token = this.getCookie('session_id');
         try{
 
-            const tokenn = await fetch(`/api/auto?with=${token}`);
-        }catch (err){
-           console.log(err);
-           
-        }
-
-        if (tokenn !== this.app.currentUser.id) {
-            if (this.app.socket) {
-                this.app.socket.close(); // Close WebSocket connection
+            const response = await fetch(`/api/auto?with=${token}`);
+              if (!response.ok) throw new Error('Failed to load users');
+            const id = await response.json();
+            console.log(id,'--------------------------');
+            
+                 
+              if (id !== this.app.currentUser.id) {
+             if (this.app.socket) {
+                this.app.socket.close(); 
             }
            this.app.authManager.handleLogout()
             return
+        }
+        }catch (err){
+           console.log(err);
+           
         }
         const typingIndicator = document.getElementById('typing-indicator');
         if (typingIndicator && payload.senderId === this.app.currentConversation) {

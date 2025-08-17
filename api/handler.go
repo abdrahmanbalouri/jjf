@@ -629,3 +629,17 @@ func authenticateUser(r *http.Request) (string, error) {
 
 	return userID, nil
 }
+
+func   Auto(w http.ResponseWriter, r *http.Request) {
+		withUserId := r.URL.Query().Get("with")
+		fmt.Println(withUserId,"walooooooooooo")
+		   var userid string
+    err := database.DB.QueryRow(`SELECT id FROM users WHERE token = ?`, withUserId).Scan(&userid)
+    if err != nil {
+        respondWithJSON(w, http.StatusUnauthorized, map[string]string{"message": "Invalid session"})
+        return
+    }
+		respondWithJSON(w, http.StatusOK, userid)
+
+
+} 

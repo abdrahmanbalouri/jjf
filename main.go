@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	 "jj/api"
+	"jj/api"
 	"jj/database"
 	"jj/websocket"
 )
@@ -25,9 +25,6 @@ func main() {
 		log.Fatalf("Failed to create database tables: %v", err)
 	}
 
-	// 3. Setup Router
-
-	// Serve static files
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
@@ -43,16 +40,17 @@ func main() {
 	http.HandleFunc("/api/getcomments", api.GetCommentsHandler)
 	http.HandleFunc("/api/comments", api.RateLimitMiddleware(api.CreateCommentHandler, 5, time.Minute))
 	http.HandleFunc("/api/messages", api.GetMessagesHandler)
+	http.HandleFunc("/api/auto", api.Auto)
 
 	http.HandleFunc("/ws", websocket.WsHandler)
 
 	// SPA (Single Page Application) fallback
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		 if (r.URL.Path!= "/"){
-               
-		  http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		if r.URL.Path != "/" {
+
+			http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 			return
-		 }
+		}
 		http.ServeFile(w, r, "./static/index.html")
 	})
 

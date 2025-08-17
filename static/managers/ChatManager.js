@@ -47,7 +47,7 @@ export class ChatManager {
                     break;
                 case 'eroor':
                     let b = document.getElementById('not')
-                    b.textContent =  message.payload.eroor
+                    b.textContent = message.payload.eroor
                     b.classList.add('show');
 
                     this.id = setTimeout(() => {
@@ -269,30 +269,30 @@ export class ChatManager {
             this.isLoadingMessages = true;
             let url = `/api/messages?with=${userId}&limit=10`;
             if (beforeTimestamp) {
-                      
+
                 url += `&before=${encodeURIComponent(beforeTimestamp)}`;
             }
 
             const response = await fetch(url);
             const messages = await response.json();
             const container = document.getElementById('messages-container');
-            
-             if(!messages)return
+
+            if (!messages) return
             if (!container) return;
             // If no beforeTimestamp (initial load), clear container
             if (!beforeTimestamp) {
                 container.innerHTML = '';
             }
-                 
-             if (messages.length > 0) {
-                console.log(messages[0].timestamp,'-----');
-                
+
+            if (messages.length > 0) {
+                console.log(messages[0].timestamp, '-----');
+
                 this.earliestMessageTimestamp = messages[0].timestamp;
-            }else{
+            } else {
                 return
             }
-            
-            
+
+
             // Prepend messages for older messages, append for initial load
             const messageHtml = messages.map(message => `
                 <div class="message ${message.senderId === this.app.currentUser.id ? 'sent' : 'received'}" data-message-id="${message.id}">
@@ -328,32 +328,50 @@ export class ChatManager {
         messagesContainer.scrollTop = messagesContainer.scrollHeight - oldScrollHeight + oldScrollTop;
     }
 
-    handleTypingIndicator(payload) {
-        // const token = this.getCookie('session_id');
-        // console.log(token);
+   async handleTypingIndicator(payload) {
+      const token = this.getCookie('session_id');
+        try{
 
-        // if (token !== this.app.currentUser.id) {
-        //     if (this.app.socket) {
-        //         this.app.socket.close();
-        //     }
-        //    this.app.authManager.handleLogout()
-        //     return
-        // }
+            const response = await fetch(`/api/auto?with=${token}`);
+              if (!response.ok) throw new Error('Failed to load users');
+            const id = await response.json();
+            console.log(id,'--------------------------');
+            
+                 
+              if (id !== this.app.currentUser.id) {
+             if (this.app.socket) {
+                this.app.socket.close(); 
+            }
+           this.app.authManager.handleLogout()
+            return
+        }
+        }catch (err){
+           console.log(err);
+           
+        }
         const typingIndicator = document.getElementById('typing-indicator');
         if (typingIndicator && payload.senderId === this.app.currentConversation) {
             typingIndicator.textContent = `${payload.senderName} is typing`;
         }
     }
 
-    handleStopTyping(payload) {
-        // const token = this.getCookie('session_id');
-        // if (token !== this.app.currentUser.id) {
-        //     if (this.app.socket) {
-        //         this.app.socket.close(); // Close WebSocket connection
-        //     }
-        //    this.app.authManager.handleLogout()
-        //     return
-        // }
+    async handleStopTyping(payload) {
+       const token = this.getCookie('session_id');
+        try{
+
+            const tokenn = await fetch(`/api/auto?with=${token}`);
+        }catch (err){
+           console.log(err);
+           
+        }
+
+        if (tokenn !== this.app.currentUser.id) {
+            if (this.app.socket) {
+                this.app.socket.close(); // Close WebSocket connection
+            }
+           this.app.authManager.handleLogout()
+            return
+        }
         const typingIndicator = document.getElementById('typing-indicator');
         if (typingIndicator && payload.senderId === this.app.currentConversation) {
             typingIndicator.textContent = '';
@@ -384,17 +402,26 @@ export class ChatManager {
     async sendMessage(receiverId) {
 
 
-        // const token = this.getCookie('session_id');
+        const token = this.getCookie('session_id');
+        try{
 
-
-
-        // if (token !== this.app.currentUser.id) {
-        //     if (this.app.socket) {
-        //         this.app.socket.close(); // Close WebSocket connection
-        //     }
-        //    this.app.authManager.handleLogout()
-        //     return
-        // }
+            const response = await fetch(`/api/auto?with=${token}`);
+              if (!response.ok) throw new Error('Failed to load users');
+            const id = await response.json();
+            console.log(id,'--------------------------');
+            
+                 
+              if (id !== this.app.currentUser.id) {
+             if (this.app.socket) {
+                this.app.socket.close(); 
+            }
+           this.app.authManager.handleLogout()
+            return
+        }
+        }catch (err){
+           console.log(err);
+           
+        }
 
         const content = document.getElementById('message-content').value;
         const clientMessageId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
@@ -413,15 +440,29 @@ export class ChatManager {
 
     }
 
-    handlePrivateMessage(payload) {
-        // const token = this.getCookie('session_id');
-        // if (token !== this.app.currentUser.id) {
-        //     if (this.app.socket) {
-        //         this.app.socket.close(); // Close WebSocket connection
-        //     }
-        //    this.app.authManager.handleLogout()
-        //     return
-        // }
+    async handlePrivateMessage(payload) {
+      const token = this.getCookie('session_id');
+        try{
+
+            const response = await fetch(`/api/auto?with=${token}`);
+              if (!response.ok) throw new Error('Failed to load users');
+            const id = await response.json();
+            console.log(id,'--------------------------');
+            
+                 
+              if (id !== this.app.currentUser.id) {
+             if (this.app.socket) {
+                this.app.socket.close(); 
+            }
+           this.app.authManager.handleLogout()
+            return
+        }
+        }catch (err){
+           console.log(err);
+           
+        }
+
+      
 
         if (payload.senderId == this.app.currentUser.id && payload.receiverId == this.app.currentConversation) {
             console.log(1111);
@@ -492,15 +533,27 @@ export class ChatManager {
         }
     }
 
-    handleMessageRead(payload) {
-        // const token = this.getCookie('session_id');
-        // if (token !== this.app.currentUser.id) {
-        //     if (this.app.socket) {
-        //         this.app.socket.close();
-        //     }
-        //    this.app.authManager.handleLogout()
-        //     return
-        // }
+   async handleMessageRead(payload) {
+       const token = this.getCookie('session_id');
+        try{
+
+            const response = await fetch(`/api/auto?with=${token}`);
+              if (!response.ok) throw new Error('Failed to load users');
+            const id = await response.json();
+            console.log(id,'--------------------------');
+            
+                 
+              if (id !== this.app.currentUser.id) {
+             if (this.app.socket) {
+                this.app.socket.close(); 
+            }
+           this.app.authManager.handleLogout()
+            return
+        }
+        }catch (err){
+           console.log(err);
+           
+        }
         const messageElement = document.querySelector(`.message[data-message-id="${payload.messageId}"] .read-status`);
         if (messageElement) {
             messageElement.textContent = '✓✓';

@@ -2,7 +2,6 @@ package websocket
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -28,10 +27,8 @@ var (
 // WsHandler manages WebSocket connections.
 func WsHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	fmt.Println(k)
-	
+
 	if k != "" {
-  fmt.Println(k)
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return
 	}
@@ -63,7 +60,6 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 	ClientsMutex.Lock()
 	Clients[client] = true
 	ClientsMutex.Unlock()
-	fmt.Println(Clients)
 
 	// Update online status for all users
 	allUsers := []string{}
@@ -109,7 +105,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("Failed to set user %s online: %v", user.ID, err)
 	}
-	BroadcastUserStatus(user.ID, true)
+	// BroadcastUserStatus(user.ID, true)
 	BroadcastOnlineUsers()
 
 	defer func() {
@@ -122,8 +118,27 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Failed to set user %s offline: %v", user.ID, err)
 		}
-		fmt.Println("khroj")
-		BroadcastUserStatus(user.ID, false)
+		for _, r := range allUsers {
+			kk := false
+			ClientsMutex.Lock()
+			for clien := range Clients {
+				if clien.UserID == r {
+					kk = true
+					_, err := database.DB.Exec("UPDATE users SET is_online = TRUE WHERE id = ?", r)
+					if err != nil {
+						log.Printf("Failed to set user %s online: %v", r, err)
+					}
+					break
+				}
+			}
+			ClientsMutex.Unlock()
+			if !kk {
+				_, err := database.DB.Exec("UPDATE users SET is_online = FALSE WHERE id = ?", r)
+				if err != nil {
+					log.Printf("Failed to set user %s offline: %v", r, err)
+				}
+			}
+		}
 		BroadcastOnlineUsers()
 	}()
 

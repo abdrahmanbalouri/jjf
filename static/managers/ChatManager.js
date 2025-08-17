@@ -22,7 +22,6 @@ export class ChatManager {
         this.socket.onmessage = (event) => {
             if (!event.data) return;
             const message = JSON.parse(event.data);
-            console.log(message);
 
             switch (message.type) {
                 case 'user_status':
@@ -246,7 +245,6 @@ export class ChatManager {
 
 
             messagesContainer.onscroll = this.throttle(() => {
-                console.log(messagesContainer.scrollTop);
 
 
                 if (messagesContainer.scrollTop <= 100 && !this.isLoadingMessages) {
@@ -266,29 +264,35 @@ export class ChatManager {
     }
 
     async loadMessages(userId, beforeTimestamp = null) {
-        console.log(this.app.currentUser.id);
 
         try {
             this.isLoadingMessages = true;
             let url = `/api/messages?with=${userId}&limit=10`;
             if (beforeTimestamp) {
-
+                      
                 url += `&before=${encodeURIComponent(beforeTimestamp)}`;
             }
 
             const response = await fetch(url);
-            if (!response.ok) throw new Error('Failed to load messages');
             const messages = await response.json();
             const container = document.getElementById('messages-container');
+            
+             if(!messages)return
             if (!container) return;
             // If no beforeTimestamp (initial load), clear container
             if (!beforeTimestamp) {
                 container.innerHTML = '';
             }
-            // Update earliest message timestamp for next pagination
-            if (messages.length > 0) {
+                 
+             if (messages.length > 0) {
+                console.log(messages[0].timestamp,'-----');
+                
                 this.earliestMessageTimestamp = messages[0].timestamp;
+            }else{
+                return
             }
+            
+            
             // Prepend messages for older messages, append for initial load
             const messageHtml = messages.map(message => `
                 <div class="message ${message.senderId === this.app.currentUser.id ? 'sent' : 'received'}" data-message-id="${message.id}">

@@ -74,7 +74,8 @@ func CreateTables() error {
 			FOREIGN KEY(user_id) REFERENCES users(id)
 		)`,
 		`CREATE TABLE IF NOT EXISTS private_messages (
-			id TEXT PRIMARY KEY,
+       idss INTEGER PRIMARY KEY AUTOINCREMENT,
+			id TEXT ,
 			sender_id TEXT NOT NULL,
 			receiver_id TEXT NOT NULL,
 			content TEXT,

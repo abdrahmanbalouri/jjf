@@ -212,7 +212,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
 	if k != "*/*" {
-	http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return
 	}
 	userID, err := authenticateUser(r)
@@ -264,7 +264,7 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 // GetPostsHandler retrieves a list of all posts.
 func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	
+
 	if k != "*/*" {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
@@ -307,7 +307,7 @@ func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
 // GetPostHandler retrieves a single post by ID.
 func GetPostHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	
+
 	if k != "*/*" {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
@@ -350,7 +350,7 @@ func GetPostHandler(w http.ResponseWriter, r *http.Request) {
 // CreatePostHandler creates a new post.
 func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	
+
 	if k != "*/*" {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
@@ -405,7 +405,7 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 // GetCommentsHandler retrieves comments for a specific post.
 func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	
+
 	if k != "*/*" {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
@@ -456,7 +456,7 @@ func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 // CreateCommentHandler creates a new comment for a post.
 func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	
+
 	if k != "*/*" {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
@@ -511,7 +511,7 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 // GetMessagesHandler retrieves private messages between two users.
 func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	
+
 	if k != "*/*" {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
@@ -545,12 +545,13 @@ func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	args := []interface{}{userID, withUserId, withUserId, userID}
 
 	if before := r.URL.Query().Get("before"); before != "" {
-		query += ` AND m.created_at < ?`
-		args = append(args, before)
-	}
-
-	query += ` ORDER BY m.created_at DESC LIMIT ?`
+    fmt.Println(before)
+    query += ` AND datetime(m.created_at) < datetime(?)`
+    args = append(args, before)
+}
+	query += ` ORDER BY m.idss DESC LIMIT ?`
 	args = append(args, limit)
+  
 
 	rows, err := database.DB.Query(query, args...)
 	if err != nil {
@@ -577,12 +578,10 @@ func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		messages = append(messages, msg)
 	}
-
-	// Reverse messages to maintain ascending order
+      
 	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
 		messages[i], messages[j] = messages[j], messages[i]
 	}
-
 	respondWithJSON(w, http.StatusOK, messages)
 }
 
@@ -604,7 +603,6 @@ func RateLimitMiddleware(next http.HandlerFunc, limit int, window time.Duration)
 				fmt.Println(c.Requests)
 				c.Requests++
 				if c.Requests > limit {
-					fmt.Println("eror")
 					c.Requests = 0
 					c.LastSeen = time.Now()
 					RespondWithError(w, http.StatusMethodNotAllowed, "A lot of requests")

@@ -61,7 +61,7 @@ export class PostManager {
                 }, 2000)
             }
         } catch (error) {
-            this.app.showView('login')
+           this.app.authManager.handleLogout()
         }
     }
 
@@ -162,7 +162,7 @@ export class PostManager {
                 }, 2000)
             }
         } catch (error) {
-            this.app.showView('login')
+           this.app.authManager.handleLogout()
 
         }
     }

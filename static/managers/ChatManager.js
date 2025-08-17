@@ -336,7 +336,7 @@ export class ChatManager {
             if (this.app.socket) {
                 this.app.socket.close();
             }
-            this.app.showView('login')
+           this.app.authManager.handleLogout()
             return
         }
         const typingIndicator = document.getElementById('typing-indicator');
@@ -351,7 +351,7 @@ export class ChatManager {
             if (this.app.socket) {
                 this.app.socket.close(); // Close WebSocket connection
             }
-            this.app.showView('login')
+           this.app.authManager.handleLogout()
             return
         }
         const typingIndicator = document.getElementById('typing-indicator');
@@ -392,7 +392,7 @@ export class ChatManager {
             if (this.app.socket) {
                 this.app.socket.close(); // Close WebSocket connection
             }
-            this.app.showView('login')
+           this.app.authManager.handleLogout()
             return
         }
 
@@ -419,7 +419,7 @@ export class ChatManager {
             if (this.app.socket) {
                 this.app.socket.close(); // Close WebSocket connection
             }
-            this.app.showView('login')
+           this.app.authManager.handleLogout()
             return
         }
 
@@ -498,7 +498,7 @@ export class ChatManager {
             if (this.app.socket) {
                 this.app.socket.close();
             }
-            this.app.showView('login')
+           this.app.authManager.handleLogout()
             return
         }
         const messageElement = document.querySelector(`.message[data-message-id="${payload.messageId}"] .read-status`);

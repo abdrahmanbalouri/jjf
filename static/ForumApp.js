@@ -9,7 +9,6 @@ export class ForumApp {
         this.socket = null;
         this.currentUser = null;
         this.currentConversation = null;
-        this.pendingMessages = new Map(); // Track pending messages
 
         // Initialize managers and pass a reference to this ForumApp instance
         this.uiManager = new UIManager(this);

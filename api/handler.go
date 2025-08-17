@@ -14,7 +14,6 @@ import (
 
 	"jj/database" // Import the database package
 	"jj/models"   // Import your models
-
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -28,6 +27,7 @@ var (
 	clients = make(map[string]*Client)
 	mu      sync.Mutex
 )
+var Lougout bool
 
 // Utility Functions for API responses (can also be in a separate `utils` package)
 func RespondWithError(w http.ResponseWriter, code int, message string) {
@@ -84,7 +84,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	if (len(req.Nickname) < 2 || len(req.Nickname) > 10) || (len(req.FirstName) < 2 || len(req.FirstName) > 10) || (len(req.LastName) < 2 || len(req.LastName) > 10) || (len(req.Password) < 2 || len(req.Password) > 10) || (req.Age > 100 || req.Age < 20) {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
-		fmt.Println("2222")
 		return
 	}
 
@@ -111,7 +110,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		RespondWithError(w, http.StatusInternalServerError, "Failed to create user")
 		return
 	}
-	fmt.Println(33333)
 	respondWithJSON(w, http.StatusCreated, map[string]string{"message": "User created successfully"})
 }
 
@@ -168,7 +166,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   86400,
 	})
-
+      Lougout = false
 	respondWithJSON(w, http.StatusOK, map[string]interface{}{
 		"message": "Login successful",
 		"user":    models.User{ID: user.ID, Nickname: user.Nickname}, // Use models.User
@@ -188,7 +186,8 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		RespondWithError(w, http.StatusBadRequest, "Not logged in")
 		return
-	}
+	}  
+	Lougout = true
 
 	_, err = database.DB.Exec(`
         UPDATE users SET is_online = FALSE WHERE id = ?`,
@@ -425,7 +424,6 @@ func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
         WHERE c.post_id = ?
         ORDER BY c.created_at ASC`, postID)
 	if err != nil {
-		fmt.Println("22")
 		RespondWithError(w, http.StatusInternalServerError, "Failed to fetch comments")
 		return
 	}
@@ -443,7 +441,6 @@ func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 		var comment Comment
 		err := rows.Scan(&comment.ID, &comment.Content, &comment.CreatedAt, &comment.Author)
 		if err != nil {
-			fmt.Println("22222")
 			RespondWithError(w, http.StatusInternalServerError, "Failed to process comments")
 			return
 		}
@@ -545,7 +542,6 @@ func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	args := []interface{}{userID, withUserId, withUserId, userID}
 
 	if before := r.URL.Query().Get("before"); before != "" {
-    fmt.Println(before)
     query += ` AND datetime(m.created_at) < datetime(?)`
     args = append(args, before)
 }
@@ -600,7 +596,6 @@ func RateLimitMiddleware(next http.HandlerFunc, limit int, window time.Duration)
 				c.Requests = 1
 				c.LastSeen = time.Now()
 			} else {
-				fmt.Println(c.Requests)
 				c.Requests++
 				if c.Requests > limit {
 					c.Requests = 0

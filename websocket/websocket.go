@@ -2,12 +2,13 @@ package websocket
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"sync"
 	"time"
 
-	"jj/api"
+            "jj/api"
 	"jj/database"
 	"jj/models"
 
@@ -18,7 +19,7 @@ import (
 // Global WebSocket-related variables managed within this package
 var (
 	Clients      = make(map[*models.Client]bool) // Use models.Client
-	ClientsMutex sync.Mutex
+  	ClientsMutex sync.Mutex
 	Upgrader     = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool { return true },
 	}
@@ -105,10 +106,10 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("Failed to set user %s online: %v", user.ID, err)
 	}
-	// BroadcastUserStatus(user.ID, true)
 	BroadcastOnlineUsers()
 
 	defer func() {
+		fmt.Println("22222")
 		ClientsMutex.Lock()
 		delete(Clients, client)
 		ClientsMutex.Unlock()
@@ -139,6 +140,26 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
+		
+		if(api.Lougout){
+			_, err2 := database.DB.Exec("UPDATE users SET is_online = FALSE WHERE id = ?", user.ID)
+			fmt.Println("mmm")
+			if err2 != nil {
+				
+				
+			}
+
+			for c := range Clients {
+		  if c.UserID == user.ID {
+		      fmt.Println("22")
+				c.Conn.Close()
+				delete(Clients, c)
+			
+		}
+	}
+
+			
+		}
 		BroadcastOnlineUsers()
 	}()
 
@@ -154,7 +175,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 			log.Printf("WebSocket read error for user %s: %v", user.ID, err)
 			break
 		}
-
+		fmt.Println(msg, "---------")
 		switch msg.Type {
 		case "private_message":
 			var message struct {
@@ -195,6 +216,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 			HandleStopTyping(client, user.ID, user.Nickname, typingData.ReceiverID)
+
 		}
 	}
 }
@@ -221,6 +243,7 @@ func BroadcastUserStatus(userID string, isOnline bool) {
 
 // BroadcastOnlineUsers sends a list of all currently online users to all connected clients.
 func BroadcastOnlineUsers() {
+	fmt.Println("5555")
 	rows, err := database.DB.Query("SELECT id, nickname FROM users WHERE is_online = TRUE")
 	if err != nil {
 		log.Println("Failed to get online users:", err)
@@ -422,4 +445,21 @@ func HandleStopTyping(client *models.Client, senderID, senderNickname, receiverI
 			}
 		}
 	}
+}
+
+func authenticateUser(r *http.Request) (string, error) {
+	cookie, err := r.Cookie("session_id")
+	if err != nil {
+		return "", err
+	}
+	fmt.Println(cookie)
+
+	var userID string
+	err = database.DB.QueryRow("SELECT id FROM users WHERE id = ?", cookie.Value).Scan(&userID)
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+
+	return userID, nil
 }

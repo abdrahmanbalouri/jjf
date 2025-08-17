@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"jj/api" // Your API handlers
+	 "jj/api"
 	"jj/database"
 	"jj/websocket"
 )
@@ -48,10 +48,8 @@ func main() {
 
 	// SPA (Single Page Application) fallback
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		       fmt.Println(r.URL.Path)
 		 if (r.URL.Path!= "/"){
                
-				// fmt.Println("54445")
 		  http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 			return
 		 }

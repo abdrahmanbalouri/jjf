@@ -24,7 +24,9 @@ export class ChatManager {
             const message = JSON.parse(event.data);
 
             switch (message.type) {
-              
+                // case 'user_status':
+                //     this.updateUserStatus(message.userId, message.isOnline);
+                //     break;
                 case 'online_users':
                     this.loadUsers();
                     break;

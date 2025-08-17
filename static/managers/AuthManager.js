@@ -128,12 +128,11 @@ export class AuthManager {
             if (response.ok) {
                 this.app.currentUser = null;
                 if (this.app.socket) {
-                    this.app.socket.close(); // Close WebSocket connection
+                    this.app.socket.close();
                 }
-                this.app.pendingMessages.clear(); // Clear pending messages
-                this.app.showView('login');
+                  this.app.showView('login');
             } else {
-                alert('Logout failed');
+                //alert('Logout failed');
             }
         } catch (error) {
             console.error('Logout error:', error);

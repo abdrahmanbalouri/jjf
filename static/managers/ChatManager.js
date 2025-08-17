@@ -329,16 +329,16 @@ export class ChatManager {
     }
 
     handleTypingIndicator(payload) {
-        const token = this.getCookie('session_id');
-        console.log(token);
+        // const token = this.getCookie('session_id');
+        // console.log(token);
 
-        if (token !== this.app.currentUser.id) {
-            if (this.app.socket) {
-                this.app.socket.close();
-            }
-           this.app.authManager.handleLogout()
-            return
-        }
+        // if (token !== this.app.currentUser.id) {
+        //     if (this.app.socket) {
+        //         this.app.socket.close();
+        //     }
+        //    this.app.authManager.handleLogout()
+        //     return
+        // }
         const typingIndicator = document.getElementById('typing-indicator');
         if (typingIndicator && payload.senderId === this.app.currentConversation) {
             typingIndicator.textContent = `${payload.senderName} is typing`;
@@ -346,14 +346,14 @@ export class ChatManager {
     }
 
     handleStopTyping(payload) {
-        const token = this.getCookie('session_id');
-        if (token !== this.app.currentUser.id) {
-            if (this.app.socket) {
-                this.app.socket.close(); // Close WebSocket connection
-            }
-           this.app.authManager.handleLogout()
-            return
-        }
+        // const token = this.getCookie('session_id');
+        // if (token !== this.app.currentUser.id) {
+        //     if (this.app.socket) {
+        //         this.app.socket.close(); // Close WebSocket connection
+        //     }
+        //    this.app.authManager.handleLogout()
+        //     return
+        // }
         const typingIndicator = document.getElementById('typing-indicator');
         if (typingIndicator && payload.senderId === this.app.currentConversation) {
             typingIndicator.textContent = '';
@@ -384,17 +384,17 @@ export class ChatManager {
     async sendMessage(receiverId) {
 
 
-        const token = this.getCookie('session_id');
+        // const token = this.getCookie('session_id');
 
 
 
-        if (token !== this.app.currentUser.id) {
-            if (this.app.socket) {
-                this.app.socket.close(); // Close WebSocket connection
-            }
-           this.app.authManager.handleLogout()
-            return
-        }
+        // if (token !== this.app.currentUser.id) {
+        //     if (this.app.socket) {
+        //         this.app.socket.close(); // Close WebSocket connection
+        //     }
+        //    this.app.authManager.handleLogout()
+        //     return
+        // }
 
         const content = document.getElementById('message-content').value;
         const clientMessageId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
@@ -414,14 +414,14 @@ export class ChatManager {
     }
 
     handlePrivateMessage(payload) {
-        const token = this.getCookie('session_id');
-        if (token !== this.app.currentUser.id) {
-            if (this.app.socket) {
-                this.app.socket.close(); // Close WebSocket connection
-            }
-           this.app.authManager.handleLogout()
-            return
-        }
+        // const token = this.getCookie('session_id');
+        // if (token !== this.app.currentUser.id) {
+        //     if (this.app.socket) {
+        //         this.app.socket.close(); // Close WebSocket connection
+        //     }
+        //    this.app.authManager.handleLogout()
+        //     return
+        // }
 
         if (payload.senderId == this.app.currentUser.id && payload.receiverId == this.app.currentConversation) {
             console.log(1111);
@@ -493,14 +493,14 @@ export class ChatManager {
     }
 
     handleMessageRead(payload) {
-        const token = this.getCookie('session_id');
-        if (token !== this.app.currentUser.id) {
-            if (this.app.socket) {
-                this.app.socket.close();
-            }
-           this.app.authManager.handleLogout()
-            return
-        }
+        // const token = this.getCookie('session_id');
+        // if (token !== this.app.currentUser.id) {
+        //     if (this.app.socket) {
+        //         this.app.socket.close();
+        //     }
+        //    this.app.authManager.handleLogout()
+        //     return
+        // }
         const messageElement = document.querySelector(`.message[data-message-id="${payload.messageId}"] .read-status`);
         if (messageElement) {
             messageElement.textContent = '✓✓';

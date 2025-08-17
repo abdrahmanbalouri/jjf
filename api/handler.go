@@ -12,10 +12,10 @@ import (
 	"sync"
 	"time"
 
-	"jj/database" // Import the database package
-	"jj/models"   // Import your models
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"jj/database" // Import the database package
+	"jj/models"   // Import your models
 )
 
 type Client struct {
@@ -40,22 +40,6 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	json.NewEncoder(w).Encode(payload)
 }
 
-// authenticateUser checks for a valid session cookie and returns the user ID.
-func authenticateUser(r *http.Request) (string, error) {
-	cookie, err := r.Cookie("session_id")
-	if err != nil {
-		return "", err
-	}
-
-	var userID string
-	err = database.DB.QueryRow("SELECT id FROM users WHERE id = ?", cookie.Value).Scan(&userID)
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-
-	return userID, nil
-}
 
 // RegisterHandler handles new user registration.
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
@@ -138,6 +122,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Nickname string
 		Password string
 	}
+	token := uuid.New().String()
+
 	err := database.DB.QueryRow(`
         SELECT id, nickname, password FROM users WHERE nickname = ? OR email = ?`,
 		req.Identifier, req.Identifier).Scan(&user.ID, &user.Nickname, &user.Password)
@@ -159,14 +145,24 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_id",
-		Value:    user.ID,
+		Value:    token,
 		Path:     "/",
 		HttpOnly: false,
 		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   86400,
 	})
-      Lougout = false
+    _, err1 := database.DB.Exec(`
+    UPDATE users
+    SET token = ?
+    WHERE id = ?`,
+    token, user.ID,
+)
+if err1 != nil {
+    log.Println("Failed to update token:", err)
+    return 
+}
+	Lougout = false
 	respondWithJSON(w, http.StatusOK, map[string]interface{}{
 		"message": "Login successful",
 		"user":    models.User{ID: user.ID, Nickname: user.Nickname}, // Use models.User
@@ -176,22 +172,20 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 // LogoutHandler handles user logout.
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
+		withUserId := r.URL.Query().Get("with")
+
 
 	if k != "*/*" {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return
-	}
-	cookie, err := r.Cookie("session_id")
-	if err != nil {
-		RespondWithError(w, http.StatusBadRequest, "Not logged in")
-		return
-	}  
+	 }
+
 	Lougout = true
 
-	_, err = database.DB.Exec(`
+	_, err := database.DB.Exec(`
         UPDATE users SET is_online = FALSE WHERE id = ?`,
-		cookie.Value)
+		withUserId)
 	if err != nil {
 		log.Printf("Failed to update user status: %v", err)
 	}
@@ -203,6 +197,16 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		MaxAge:   -1,
 	})
+	_, err2 := database.DB.Exec(`
+    UPDATE users
+    SET token = NULL
+    WHERE id = ?`,
+    withUserId, // l'user li kay logout
+)
+if err2 != nil {
+    log.Println("Failed to clear token in DB:", err)
+	return
+}
 
 	respondWithJSON(w, http.StatusOK, map[string]string{"message": "Logged out successfully"})
 }
@@ -357,6 +361,7 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	userID, err := authenticateUser(r)
 	if err != nil {
+		fmt.Println("2222")
 		RespondWithError(w, http.StatusUnauthorized, "Authentication required")
 		return
 	}
@@ -542,12 +547,11 @@ func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	args := []interface{}{userID, withUserId, withUserId, userID}
 
 	if before := r.URL.Query().Get("before"); before != "" {
-    query += ` AND datetime(m.created_at) < datetime(?)`
-    args = append(args, before)
-}
+		query += ` AND datetime(m.created_at) < datetime(?)`
+		args = append(args, before)
+	}
 	query += ` ORDER BY m.idss DESC LIMIT ?`
 	args = append(args, limit)
-  
 
 	rows, err := database.DB.Query(query, args...)
 	if err != nil {
@@ -574,7 +578,7 @@ func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		messages = append(messages, msg)
 	}
-      
+
 	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
 		messages[i], messages[j] = messages[j], messages[i]
 	}
@@ -608,4 +612,20 @@ func RateLimitMiddleware(next http.HandlerFunc, limit int, window time.Duration)
 
 		next(w, r)
 	}
+}
+func authenticateUser(r *http.Request) (string, error) {
+	cookie, err := r.Cookie("session_id")
+	if err != nil {
+		return "", err
+	}
+	fmt.Println(cookie)
+
+	var userID string
+	err = database.DB.QueryRow("SELECT id FROM users WHERE token = ?", cookie.Value).Scan(&userID)
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+
+	return userID, nil
 }

@@ -48,6 +48,7 @@ func CreateTables() error {
 			age INTEGER,
 			gender TEXT,
 			first_name TEXT,
+		    token TEXT UNIQUE,
 			last_name TEXT,
 			email TEXT UNIQUE NOT NULL,
 			password TEXT NOT NULL,

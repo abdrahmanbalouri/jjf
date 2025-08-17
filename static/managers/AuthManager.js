@@ -124,7 +124,7 @@ export class AuthManager {
 
     async handleLogout() {
         try {
-            const response = await fetch('/api/logout', { method: 'POST' });
+            const response = await fetch(`/api/logout?with=${this.app.currentUser.id}`, { method: 'POST' });
             if (response.ok) {
                 this.app.currentUser = null;
                 if (this.app.socket) {

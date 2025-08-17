@@ -40,15 +40,14 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Authentication
-	cookie, err := r.Cookie("session_id")
-	if err != nil {
-		log.Println("No session_id cookie found")
-		conn.Close()
+	 ids,err:= authenticateUser(r)
+	 if err != nil {
+		api.RespondWithError(w, http.StatusUnauthorized, "Authentication required")
 		return
 	}
 
 	var user models.User
-	err = database.DB.QueryRow("SELECT id, nickname FROM users WHERE id = ?", cookie.Value).Scan(&user.ID, &user.Nickname)
+	err = database.DB.QueryRow("SELECT id, nickname FROM users WHERE id = ?", ids).Scan(&user.ID, &user.Nickname)
 	if err != nil {
 		api.RespondWithError(w, http.StatusUnauthorized, "Authentication required")
 		conn.Close()
@@ -455,7 +454,7 @@ func authenticateUser(r *http.Request) (string, error) {
 	fmt.Println(cookie)
 
 	var userID string
-	err = database.DB.QueryRow("SELECT id FROM users WHERE id = ?", cookie.Value).Scan(&userID)
+	err = database.DB.QueryRow("SELECT id FROM users WHERE token = ?", cookie.Value).Scan(&userID)
 	if err != nil {
 		fmt.Println(err)
 		return "", err

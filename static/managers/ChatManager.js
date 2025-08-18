@@ -6,6 +6,7 @@ export class ChatManager {
         this.earliestMessageTimestamp = null; // Track earliest message for pagination
         this.isLoadingMessages = false; // Prevent multiple simultaneous fetches
         this.id = null
+        this.beforeId = null
     }
 
     initWebSocket() {
@@ -263,60 +264,62 @@ export class ChatManager {
         document.getElementById('message-content').value = '';
     }
 
-    async loadMessages(userId, beforeTimestamp = null) {
-
-        try {
-            this.isLoadingMessages = true;
-            let url = `/api/messages?with=${userId}&limit=10`;
-            if (beforeTimestamp) {
-
-                url += `&before=${encodeURIComponent(beforeTimestamp)}`;
-            }
-
-            const response = await fetch(url);
-            const messages = await response.json();
-            const container = document.getElementById('messages-container');
-
-            if (!messages) return
-            if (!container) return;
-            // If no beforeTimestamp (initial load), clear container
-            if (!beforeTimestamp) {
-                container.innerHTML = '';
-            }
-
-            if (messages.length > 0) {
-                console.log(messages[0].timestamp, '-----');
-
-                this.earliestMessageTimestamp = messages[0].timestamp;
-            } else {
-                return
-            }
-
-
-            // Prepend messages for older messages, append for initial load
-            const messageHtml = messages.map(message => `
-                <div class="message ${message.senderId === this.app.currentUser.id ? 'sent' : 'received'}" data-message-id="${message.id}">
-                    <div class="message-meta">
-                        <span>${new Date(message.timestamp).toLocaleString()}</span>
-                        ${message.senderId === this.app.currentUser.id ? `<span class="read-status">${message.isRead ? '✓✓' : '✓'}</span>` : ''}
-                    </div>
-                    <div class="message-content">${message.content}</div>
-                </div>
-            `).join('');
-            if (beforeTimestamp) {
-                container.insertAdjacentHTML('afterbegin', messageHtml);
-            } else {
-                container.insertAdjacentHTML('beforeend', messageHtml);
-                container.scrollTop = container.scrollHeight;
-            }
-        } catch (error) {
-            console.error('Error loading messages:', error);
-            document.getElementById('messages-container').innerHTML =
-                '<div class="error">Failed to load messages</div>';
-        } finally {
-            this.isLoadingMessages = false;
+    async loadMessages(userId, beforeTimestamp = null, beforeId = null) {
+    try {
+        this.isLoadingMessages = true;
+        let url = `/api/messages?with=${userId}&limit=10`;
+        if (beforeTimestamp && beforeId) {
+            url += `&before=${encodeURIComponent(beforeTimestamp)}&before_id=${encodeURIComponent(beforeId)}`;
+        } else if (beforeTimestamp) {
+            url += `&before=${encodeURIComponent(beforeTimestamp)}`;
         }
+
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const messages = await response.json();
+        const container = document.getElementById('messages-container');
+
+        if (!messages || !container) return;
+
+        // If no beforeTimestamp (initial load), clear container
+        if (!beforeTimestamp) {
+            container.innerHTML = '';
+        }
+
+        if (messages.length > 0) {
+            console.log(messages[0].timestamp, '-----');
+            this.earliestMessageTimestamp = messages[0].timestamp;
+            this.earliestMessageId = messages[0].id; // Store the earliest message ID
+        } else {
+            return;
+        }
+
+        // Prepend messages for older messages, append for initial load
+        const messageHtml = messages.map(message => `
+            <div class="message ${message.senderId === this.app.currentUser.id ? 'sent' : 'received'}" data-message-id="${message.id}">
+                <div class="message-meta">
+                    <span>${new Date(message.timestamp).toLocaleString()}</span>
+                    ${message.senderId === this.app.currentUser.id ? `<span class="read-status">${message.isRead ? '✓✓' : '✓'}</span>` : ''}
+                </div>
+                <div class="message-content">${message.content}</div>
+            </div>
+        `).join('');
+        if (beforeTimestamp) {
+            container.insertAdjacentHTML('afterbegin', messageHtml);
+        } else {
+            container.insertAdjacentHTML('beforeend', messageHtml);
+            container.scrollTop = container.scrollHeight;
+        }
+    } catch (error) {
+        console.error('Error loading messages:', error);
+        document.getElementById('messages-container').innerHTML =
+            '<div class="error">Failed to load messages</div>';
+    } finally {
+        this.isLoadingMessages = false;
     }
+}
 
     async loadMoreMessages(userId) {
         if (!this.earliestMessageTimestamp) return; // No more messages to load

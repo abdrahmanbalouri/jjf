@@ -512,77 +512,88 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetMessagesHandler retrieves private messages between two users.
 func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
-	k := r.Header.Get("Accept")
+    k := r.Header.Get("Accept")
+    if k != "*/*" {
+        http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+        return
+    }
 
-	if k != "*/*" {
+    userID, err := authenticateUser(r)
+    if err != nil {
+        RespondWithError(w, http.StatusUnauthorized, "Authentication required")
+        return
+    }
 
-		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
-		return
-	}
-	userID, err := authenticateUser(r)
-	if err != nil {
-		RespondWithError(w, http.StatusUnauthorized, "Authentication required")
-		return
-	}
+    withUserId := r.URL.Query().Get("with")
+    if withUserId == "" {
+        RespondWithError(w, http.StatusBadRequest, "Missing user ID")
+        return
+    }
 
-	withUserId := r.URL.Query().Get("with")
-	if withUserId == "" {
-		RespondWithError(w, http.StatusBadRequest, "Missing user ID")
-		return
-	}
+    limit := 10 // Default limit
+    if limitParam := r.URL.Query().Get("limit"); limitParam != "" {
+        if l, err := strconv.Atoi(limitParam); err == nil && l > 0 {
+            limit = l
+        }
+    }
 
-	limit := 10 // Default limit
-	if limitParam := r.URL.Query().Get("limit"); limitParam != "" {
-		if l, err := strconv.Atoi(limitParam); err == nil && l > 0 {
-			limit = l
-		}
-	}
-
-	query := `
+    query := `
         SELECT m.id, m.sender_id, m.content, m.created_at, u.nickname, m.is_read
         FROM private_messages m
         JOIN users u ON m.sender_id = u.id
         WHERE (m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?)
     `
-	args := []interface{}{userID, withUserId, withUserId, userID}
+    args := []interface{}{userID, withUserId, withUserId, userID}
 
-	if before := r.URL.Query().Get("before"); before != "" {
-		query += ` AND datetime(m.created_at) < datetime(?)`
-		args = append(args, before)
-	}
-	query += ` ORDER BY m.idss DESC LIMIT ?`
-	args = append(args, limit)
+    // Handle cursor-based pagination with before and before_id
+    if before := r.URL.Query().Get("before"); before != "" {
+        beforeID := r.URL.Query().Get("before_id")
+        if beforeID == "" {
+            // If no before_id is provided, just filter by time
+            query += ` AND m.created_at < ?`
+            args = append(args, before)
+        } else {
+            // Use both time and ID to handle same-timestamp messages
+            query += ` AND (m.created_at < ? OR (m.created_at = ? AND m.id < ?))`
+            args = append(args, before, before, beforeID)
+        }
+    }
 
-	rows, err := database.DB.Query(query, args...)
-	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, "Failed to fetch messages")
-		return
-	}
-	defer rows.Close()
+    query += ` ORDER BY m.created_at DESC, m.id DESC LIMIT ?`
+    args = append(args, limit)
 
-	type Message struct {
-		ID        string    `json:"id"`
-		SenderId  string    `json:"senderId"`
-		Content   string    `json:"content"`
-		Timestamp time.Time `json:"timestamp"`
-		Sender    string    `json:"sender"`
-		IsRead    bool      `json:"isRead"`
-	}
+    rows, err := database.DB.Query(query, args...)
+    if err != nil {
+        RespondWithError(w, http.StatusInternalServerError, "Failed to fetch messages")
+        return
+    }
+    defer rows.Close()
 
-	var messages []Message
-	for rows.Next() {
-		var msg Message
-		if err := rows.Scan(&msg.ID, &msg.SenderId, &msg.Content, &msg.Timestamp, &msg.Sender, &msg.IsRead); err != nil {
-			RespondWithError(w, http.StatusInternalServerError, "Failed to process messages")
-			return
-		}
-		messages = append(messages, msg)
-	}
+    type Message struct {
+        ID        string    `json:"id"`
+        SenderId  string    `json:"senderId"`
+        Content   string    `json:"content"`
+        Timestamp time.Time `json:"timestamp"`
+        Sender    string    `json:"sender"`
+        IsRead    bool      `json:"isRead"`
+    }
 
-	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
-		messages[i], messages[j] = messages[j], messages[i]
-	}
-	respondWithJSON(w, http.StatusOK, messages)
+    var messages []Message
+    for rows.Next() {
+        var msg Message
+        if err := rows.Scan(&msg.ID, &msg.SenderId, &msg.Content, &msg.Timestamp, &msg.Sender, &msg.IsRead); err != nil {
+            RespondWithError(w, http.StatusInternalServerError, "Failed to process messages")
+            return
+        }
+        messages = append(messages, msg)
+    }
+
+    // Reverse messages to return in chronological order (oldest first)
+    for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+        messages[i], messages[j] = messages[j], messages[i]
+    }
+
+    respondWithJSON(w, http.StatusOK, messages)
 }
 
 func RateLimitMiddleware(next http.HandlerFunc, limit int, window time.Duration) http.HandlerFunc {

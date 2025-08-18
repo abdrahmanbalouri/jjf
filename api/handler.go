@@ -539,30 +539,24 @@ func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Récupère le paramètre "offset" de l'URL
+	offset := 0
+	if offsetParam := r.URL.Query().Get("offset"); offsetParam != "" {
+		if o, err := strconv.Atoi(offsetParam); err == nil && o >= 0 {
+			offset = o
+		}
+	}
+
+	// Voici le changement clé : la requête SQL utilise "LIMIT" et "OFFSET"
 	query := `
         SELECT m.id, m.sender_id, m.content, m.created_at, u.nickname, m.is_read
         FROM private_messages m
         JOIN users u ON m.sender_id = u.id
         WHERE (m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?)
+        ORDER BY m.idss DESC, m.id DESC
+        LIMIT ? OFFSET ?
     `
-	args := []interface{}{userID, withUserId, withUserId, userID}
-
-	// Handle cursor-based pagination with before and before_id
-	if before := r.URL.Query().Get("before"); before != "" {
-		beforeID := r.URL.Query().Get("before_id")
-		if beforeID == "" {
-			// If no before_id is provided, just filter by time
-			query += ` AND m.created_at < ?`
-			args = append(args, before)
-		} else {
-			// Use both time and ID to handle same-timestamp messages
-			query += ` AND (m.created_at < ? OR (m.created_at = ? AND m.id < ?))`
-			args = append(args, before, before, beforeID)
-		}
-	}
-
-	query += ` ORDER BY m.created_at DESC, m.id DESC LIMIT ?`
-	args = append(args, limit)
+	args := []interface{}{userID, withUserId, withUserId, userID, limit, offset}
 
 	rows, err := database.DB.Query(query, args...)
 	if err != nil {
@@ -590,7 +584,7 @@ func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 		messages = append(messages, msg)
 	}
 
-	// Reverse messages to return in chronological order (oldest first)
+	// Inverse les messages pour les renvoyer dans l'ordre chronologique (du plus ancien au plus récent)
 	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
 		messages[i], messages[j] = messages[j], messages[i]
 	}

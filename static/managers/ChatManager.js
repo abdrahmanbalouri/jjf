@@ -3,10 +3,9 @@ export class ChatManager {
         this.app = app;
         this.socket = null; // WebSocket instance belongs here
         this.typingTimeout = null;
-        this.earliestMessageTimestamp = null; // Track earliest message for pagination
         this.isLoadingMessages = false; // Prevent multiple simultaneous fetches
-        this.id = null
-        this.beforeId = null
+        this.id = null;
+        this.offset = 0; // New: Track the current offset for pagination
     }
 
     initWebSocket() {
@@ -50,32 +49,18 @@ export class ChatManager {
                     let b = document.getElementById('not')
                     b.textContent = message.payload.eroor
                     b.classList.add('show');
-
                     this.id = setTimeout(() => {
-
                         b.textContent = ""
                         not.classList.remove('show');
-
-
                     }, 2000)
-
                     break
             }
         };
         this.socket.onclose = () => {
             console.log('WebSocket disconnected');
-            // this.app.currentUser = null;
-
             const typingIndicator = document.getElementById('typing-indicator');
-
             console.log(typingIndicator);
-
             typingIndicator.textContent = '';
-
-
-
-
-
         };
         this.socket.onerror = (error) => {
             console.error('WebSocket error:', error);
@@ -87,8 +72,6 @@ export class ChatManager {
             .find(row => row.startsWith(name + '='))
             ?.split('=')[1] || null;
     }
-
-
 
     async loadUsers() {
         try {
@@ -187,7 +170,7 @@ export class ChatManager {
             typingIndicator.textContent = '';
         }
         // Reset pagination state
-        this.earliestMessageTimestamp = null;
+        this.offset = 0; // Reset offset to 0 for a new conversation
         this.isLoadingMessages = false;
         document.getElementById('receiver-name').textContent = `${userName}`;
         document.getElementById('conversation-panel').classList.remove('hidden');
@@ -198,8 +181,6 @@ export class ChatManager {
                 this.closeConversation();
             });
         }
-
-
 
         // Load initial 10 messages
         await this.loadMessages(userId);
@@ -264,93 +245,88 @@ export class ChatManager {
         document.getElementById('message-content').value = '';
     }
 
-    async loadMessages(userId, beforeTimestamp = null, beforeId = null) {
-    try {
-        this.isLoadingMessages = true;
-        let url = `/api/messages?with=${userId}&limit=10`;
-        if (beforeTimestamp && beforeId) {
-            url += `&before=${encodeURIComponent(beforeTimestamp)}&before_id=${encodeURIComponent(beforeId)}`;
-        } else if (beforeTimestamp) {
-            url += `&before=${encodeURIComponent(beforeTimestamp)}`;
-        }
+    async loadMessages(userId) {
+        try {
+            this.isLoadingMessages = true;
+            // The URL now uses the offset variable
+            let url = `/api/messages?with=${userId}&limit=10&offset=${this.offset}`;
 
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const messages = await response.json();
-        const container = document.getElementById('messages-container');
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const messages = await response.json();
+            const container = document.getElementById('messages-container');
 
-        if (!messages || !container) return;
+            if (!messages || !container) return;
 
-        // If no beforeTimestamp (initial load), clear container
-        if (!beforeTimestamp) {
-            container.innerHTML = '';
-        }
+            // If it's the initial load (offset 0), clear container
+            if (this.offset === 0) {
+                container.innerHTML = '';
+            }
 
-        if (messages.length > 0) {
-            console.log(messages[0].timestamp, '-----');
-            this.earliestMessageTimestamp = messages[0].timestamp;
-            this.earliestMessageId = messages[0].id; // Store the earliest message ID
-        } else {
-            return;
-        }
+            if (messages.length === 0) {
+                // No more messages to load
+                return;
+            }
 
-        // Prepend messages for older messages, append for initial load
-        const messageHtml = messages.map(message => `
-            <div class="message ${message.senderId === this.app.currentUser.id ? 'sent' : 'received'}" data-message-id="${message.id}">
-                <div class="message-meta">
-                    <span>${new Date(message.timestamp).toLocaleString()}</span>
-                    ${message.senderId === this.app.currentUser.id ? `<span class="read-status">${message.isRead ? '✓✓' : '✓'}</span>` : ''}
+            // Prepend messages for older messages, append for initial load
+            const messageHtml = messages.map(message => `
+                <div class="message ${message.senderId === this.app.currentUser.id ? 'sent' : 'received'}" data-message-id="${message.id}">
+                    <div class="message-meta">
+                        <span>${new Date(message.timestamp).toLocaleString()}</span>
+                        ${message.senderId === this.app.currentUser.id ? `<span class="read-status">${message.isRead ? '✓✓' : '✓'}</span>` : ''}
+                    </div>
+                    <div class="message-content">${message.content}</div>
                 </div>
-                <div class="message-content">${message.content}</div>
-            </div>
-        `).join('');
-        if (beforeTimestamp) {
+            `).join('');
+            
+            // Note: with offset-based pagination, we always prepend older messages
             container.insertAdjacentHTML('afterbegin', messageHtml);
-        } else {
-            container.insertAdjacentHTML('beforeend', messageHtml);
-            container.scrollTop = container.scrollHeight;
+            
+        } catch (error) {
+            console.error('Error loading messages:', error);
+            document.getElementById('messages-container').innerHTML =
+                '<div class="error">Failed to load messages</div>';
+        } finally {
+            this.isLoadingMessages = false;
         }
-    } catch (error) {
-        console.error('Error loading messages:', error);
-        document.getElementById('messages-container').innerHTML =
-            '<div class="error">Failed to load messages</div>';
-    } finally {
-        this.isLoadingMessages = false;
     }
-}
 
     async loadMoreMessages(userId) {
-        if (!this.earliestMessageTimestamp) return; // No more messages to load
+        if (this.isLoadingMessages) return;
+
         const messagesContainer = document.getElementById('messages-container');
         const oldScrollHeight = messagesContainer.scrollHeight;
-        const oldScrollTop = messagesContainer.scrollTop;
-        await this.loadMessages(userId, this.earliestMessageTimestamp);
+        
+        // Increment offset to fetch the next batch of messages
+        this.offset += 10;
+        
+        await this.loadMessages(userId);
+        
         // Adjust scroll position to maintain view
-        messagesContainer.scrollTop = messagesContainer.scrollHeight - oldScrollHeight + oldScrollTop;
+        messagesContainer.scrollTop = messagesContainer.scrollHeight - oldScrollHeight;
     }
 
    async handleTypingIndicator(payload) {
-      const token = this.getCookie('session_id');
-        try{
-
+        const token = this.getCookie('session_id');
+        try {
             const response = await fetch(`/api/auto?with=${token}`);
-              if (!response.ok) throw new Error('Failed to load users');
+            if (!response.ok) throw new Error('Failed to load users');
             const id = await response.json();
-            console.log(id,'--------------------------');
-            
-                 
-              if (id !== this.app.currentUser.id) {
-             if (this.app.socket) {
-                this.app.socket.close(); 
+            console.log(id, '--------------------------');
+
+
+            if (id !== this.app.currentUser.id) {
+                if (this.app.socket) {
+                    this.app.socket.close();
+                }
+                this.app.authManager.handleLogout()
+                return
             }
-           this.app.authManager.handleLogout()
-            return
-        }
-        }catch (err){
-           console.log(err);
-           
+        } catch (err) {
+            console.log(err);
+
         }
         const typingIndicator = document.getElementById('typing-indicator');
         if (typingIndicator && payload.senderId === this.app.currentConversation) {
@@ -360,24 +336,23 @@ export class ChatManager {
 
     async handleStopTyping(payload) {
         const token = this.getCookie('session_id');
-        try{
-
+        try {
             const response = await fetch(`/api/auto?with=${token}`);
-              if (!response.ok) throw new Error('Failed to load users');
+            if (!response.ok) throw new Error('Failed to load users');
             const id = await response.json();
-            console.log(id,'--------------------------');
-            
-                 
-              if (id !== this.app.currentUser.id) {
-             if (this.app.socket) {
-                this.app.socket.close(); 
+            console.log(id, '--------------------------');
+
+
+            if (id !== this.app.currentUser.id) {
+                if (this.app.socket) {
+                    this.app.socket.close();
+                }
+                this.app.authManager.handleLogout()
+                return
             }
-           this.app.authManager.handleLogout()
-            return
-        }
-        }catch (err){
-           console.log(err);
-           
+        } catch (err) {
+            console.log(err);
+
         }
         const typingIndicator = document.getElementById('typing-indicator');
         if (typingIndicator && payload.senderId === this.app.currentConversation) {
@@ -410,24 +385,23 @@ export class ChatManager {
 
 
         const token = this.getCookie('session_id');
-        try{
-
+        try {
             const response = await fetch(`/api/auto?with=${token}`);
-              if (!response.ok) throw new Error('Failed to load users');
+            if (!response.ok) throw new Error('Failed to load users');
             const id = await response.json();
-            console.log(id,'--------------------------');
-            
-                 
-              if (id !== this.app.currentUser.id) {
-             if (this.app.socket) {
-                this.app.socket.close(); 
+            console.log(id, '--------------------------');
+
+
+            if (id !== this.app.currentUser.id) {
+                if (this.app.socket) {
+                    this.app.socket.close();
+                }
+                this.app.authManager.handleLogout()
+                return
             }
-           this.app.authManager.handleLogout()
-            return
-        }
-        }catch (err){
-           console.log(err);
-           
+        } catch (err) {
+            console.log(err);
+
         }
 
         const content = document.getElementById('message-content').value;
@@ -448,28 +422,27 @@ export class ChatManager {
     }
 
     async handlePrivateMessage(payload) {
-      const token = this.getCookie('session_id');
-        try{
-
+        const token = this.getCookie('session_id');
+        try {
             const response = await fetch(`/api/auto?with=${token}`);
-              if (!response.ok) throw new Error('Failed to load users');
+            if (!response.ok) throw new Error('Failed to load users');
             const id = await response.json();
-            console.log(id,'--------------------------');
-            
-                 
-              if (id !== this.app.currentUser.id) {
-             if (this.app.socket) {
-                this.app.socket.close(); 
+            console.log(id, '--------------------------');
+
+
+            if (id !== this.app.currentUser.id) {
+                if (this.app.socket) {
+                    this.app.socket.close();
+                }
+                this.app.authManager.handleLogout()
+                return
             }
-           this.app.authManager.handleLogout()
-            return
-        }
-        }catch (err){
-           console.log(err);
-           
+        } catch (err) {
+            console.log(err);
+
         }
 
-      
+
 
         if (payload.senderId == this.app.currentUser.id && payload.receiverId == this.app.currentConversation) {
             console.log(1111);
@@ -540,26 +513,25 @@ export class ChatManager {
         }
     }
 
-   async handleMessageRead(payload) {
-       const token = this.getCookie('session_id');
-        try{
-
+    async handleMessageRead(payload) {
+        const token = this.getCookie('session_id');
+        try {
             const response = await fetch(`/api/auto?with=${token}`);
-              if (!response.ok) throw new Error('Failed to load users');
+            if (!response.ok) throw new Error('Failed to load users');
             const id = await response.json();
-            console.log(id,'--------------------------');
-            
-                 
-              if (id !== this.app.currentUser.id) {
-             if (this.app.socket) {
-                this.app.socket.close(); 
+            console.log(id, '--------------------------');
+
+
+            if (id !== this.app.currentUser.id) {
+                if (this.app.socket) {
+                    this.app.socket.close();
+                }
+                this.app.authManager.handleLogout()
+                return
             }
-           this.app.authManager.handleLogout()
-            return
-        }
-        }catch (err){
-           console.log(err);
-           
+        } catch (err) {
+            console.log(err);
+
         }
         const messageElement = document.querySelector(`.message[data-message-id="${payload.messageId}"] .read-status`);
         if (messageElement) {

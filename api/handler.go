@@ -40,7 +40,6 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	json.NewEncoder(w).Encode(payload)
 }
 
-
 // RegisterHandler handles new user registration.
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
@@ -65,7 +64,11 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		RespondWithError(w, http.StatusBadRequest, "Invalid request format")
 		return
 	}
+	if !IsGmail(req.Email) {
+		RespondWithError(w, http.StatusBadRequest, "handle your gmail plzz")
+		return
 
+	}
 	if (len(req.Nickname) < 2 || len(req.Nickname) > 10) || (len(req.FirstName) < 2 || len(req.FirstName) > 10) || (len(req.LastName) < 2 || len(req.LastName) > 10) || (len(req.Password) < 2 || len(req.Password) > 10) || (req.Age > 100 || req.Age < 20) {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
@@ -152,16 +155,16 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   86400,
 	})
-    _, err1 := database.DB.Exec(`
+	_, err1 := database.DB.Exec(`
     UPDATE users
     SET token = ?
     WHERE id = ?`,
-    token, user.ID,
-)
-if err1 != nil {
-    log.Println("Failed to update token:", err)
-    return 
-}
+		token, user.ID,
+	)
+	if err1 != nil {
+		log.Println("Failed to update token:", err)
+		return
+	}
 	Lougout = false
 	respondWithJSON(w, http.StatusOK, map[string]interface{}{
 		"message": "Login successful",
@@ -172,14 +175,13 @@ if err1 != nil {
 // LogoutHandler handles user logout.
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-		withUserId := r.URL.Query().Get("with")
-
+	withUserId := r.URL.Query().Get("with")
 
 	if k != "*/*" {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return
-	 }
+	}
 
 	Lougout = true
 
@@ -201,12 +203,12 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
     UPDATE users
     SET token = NULL
     WHERE id = ?`,
-    withUserId, // l'user li kay logout
-)
-if err2 != nil {
-    log.Println("Failed to clear token in DB:", err)
-	return
-}
+		withUserId, // l'user li kay logout
+	)
+	if err2 != nil {
+		log.Println("Failed to clear token in DB:", err)
+		return
+	}
 
 	respondWithJSON(w, http.StatusOK, map[string]string{"message": "Logged out successfully"})
 }
@@ -512,88 +514,88 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetMessagesHandler retrieves private messages between two users.
 func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
-    k := r.Header.Get("Accept")
-    if k != "*/*" {
-        http.Redirect(w, r, "/", http.StatusSeeOther) // 303
-        return
-    }
+	k := r.Header.Get("Accept")
+	if k != "*/*" {
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
 
-    userID, err := authenticateUser(r)
-    if err != nil {
-        RespondWithError(w, http.StatusUnauthorized, "Authentication required")
-        return
-    }
+	userID, err := authenticateUser(r)
+	if err != nil {
+		RespondWithError(w, http.StatusUnauthorized, "Authentication required")
+		return
+	}
 
-    withUserId := r.URL.Query().Get("with")
-    if withUserId == "" {
-        RespondWithError(w, http.StatusBadRequest, "Missing user ID")
-        return
-    }
+	withUserId := r.URL.Query().Get("with")
+	if withUserId == "" {
+		RespondWithError(w, http.StatusBadRequest, "Missing user ID")
+		return
+	}
 
-    limit := 10 // Default limit
-    if limitParam := r.URL.Query().Get("limit"); limitParam != "" {
-        if l, err := strconv.Atoi(limitParam); err == nil && l > 0 {
-            limit = l
-        }
-    }
+	limit := 10 // Default limit
+	if limitParam := r.URL.Query().Get("limit"); limitParam != "" {
+		if l, err := strconv.Atoi(limitParam); err == nil && l > 0 {
+			limit = l
+		}
+	}
 
-    query := `
+	query := `
         SELECT m.id, m.sender_id, m.content, m.created_at, u.nickname, m.is_read
         FROM private_messages m
         JOIN users u ON m.sender_id = u.id
         WHERE (m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?)
     `
-    args := []interface{}{userID, withUserId, withUserId, userID}
+	args := []interface{}{userID, withUserId, withUserId, userID}
 
-    // Handle cursor-based pagination with before and before_id
-    if before := r.URL.Query().Get("before"); before != "" {
-        beforeID := r.URL.Query().Get("before_id")
-        if beforeID == "" {
-            // If no before_id is provided, just filter by time
-            query += ` AND m.created_at < ?`
-            args = append(args, before)
-        } else {
-            // Use both time and ID to handle same-timestamp messages
-            query += ` AND (m.created_at < ? OR (m.created_at = ? AND m.id < ?))`
-            args = append(args, before, before, beforeID)
-        }
-    }
+	// Handle cursor-based pagination with before and before_id
+	if before := r.URL.Query().Get("before"); before != "" {
+		beforeID := r.URL.Query().Get("before_id")
+		if beforeID == "" {
+			// If no before_id is provided, just filter by time
+			query += ` AND m.created_at < ?`
+			args = append(args, before)
+		} else {
+			// Use both time and ID to handle same-timestamp messages
+			query += ` AND (m.created_at < ? OR (m.created_at = ? AND m.id < ?))`
+			args = append(args, before, before, beforeID)
+		}
+	}
 
-    query += ` ORDER BY m.created_at DESC, m.id DESC LIMIT ?`
-    args = append(args, limit)
+	query += ` ORDER BY m.created_at DESC, m.id DESC LIMIT ?`
+	args = append(args, limit)
 
-    rows, err := database.DB.Query(query, args...)
-    if err != nil {
-        RespondWithError(w, http.StatusInternalServerError, "Failed to fetch messages")
-        return
-    }
-    defer rows.Close()
+	rows, err := database.DB.Query(query, args...)
+	if err != nil {
+		RespondWithError(w, http.StatusInternalServerError, "Failed to fetch messages")
+		return
+	}
+	defer rows.Close()
 
-    type Message struct {
-        ID        string    `json:"id"`
-        SenderId  string    `json:"senderId"`
-        Content   string    `json:"content"`
-        Timestamp time.Time `json:"timestamp"`
-        Sender    string    `json:"sender"`
-        IsRead    bool      `json:"isRead"`
-    }
+	type Message struct {
+		ID        string    `json:"id"`
+		SenderId  string    `json:"senderId"`
+		Content   string    `json:"content"`
+		Timestamp time.Time `json:"timestamp"`
+		Sender    string    `json:"sender"`
+		IsRead    bool      `json:"isRead"`
+	}
 
-    var messages []Message
-    for rows.Next() {
-        var msg Message
-        if err := rows.Scan(&msg.ID, &msg.SenderId, &msg.Content, &msg.Timestamp, &msg.Sender, &msg.IsRead); err != nil {
-            RespondWithError(w, http.StatusInternalServerError, "Failed to process messages")
-            return
-        }
-        messages = append(messages, msg)
-    }
+	var messages []Message
+	for rows.Next() {
+		var msg Message
+		if err := rows.Scan(&msg.ID, &msg.SenderId, &msg.Content, &msg.Timestamp, &msg.Sender, &msg.IsRead); err != nil {
+			RespondWithError(w, http.StatusInternalServerError, "Failed to process messages")
+			return
+		}
+		messages = append(messages, msg)
+	}
 
-    // Reverse messages to return in chronological order (oldest first)
-    for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
-        messages[i], messages[j] = messages[j], messages[i]
-    }
+	// Reverse messages to return in chronological order (oldest first)
+	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+		messages[i], messages[j] = messages[j], messages[i]
+	}
 
-    respondWithJSON(w, http.StatusOK, messages)
+	respondWithJSON(w, http.StatusOK, messages)
 }
 
 func RateLimitMiddleware(next http.HandlerFunc, limit int, window time.Duration) http.HandlerFunc {
@@ -624,6 +626,7 @@ func RateLimitMiddleware(next http.HandlerFunc, limit int, window time.Duration)
 		next(w, r)
 	}
 }
+
 func authenticateUser(r *http.Request) (string, error) {
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
@@ -641,16 +644,19 @@ func authenticateUser(r *http.Request) (string, error) {
 	return userID, nil
 }
 
-func   Auto(w http.ResponseWriter, r *http.Request) {
-		withUserId := r.URL.Query().Get("with")
-		fmt.Println(withUserId,"walooooooooooo")
-		   var userid string
-    err := database.DB.QueryRow(`SELECT id FROM users WHERE token = ?`, withUserId).Scan(&userid)
-    if err != nil {
-        respondWithJSON(w, http.StatusUnauthorized, map[string]string{"message": "Invalid session"})
-        return
-    }
-		respondWithJSON(w, http.StatusOK, userid)
+func Auto(w http.ResponseWriter, r *http.Request) {
+	withUserId := r.URL.Query().Get("with")
+	fmt.Println(withUserId, "walooooooooooo")
+	var userid string
+	err := database.DB.QueryRow(`SELECT id FROM users WHERE token = ?`, withUserId).Scan(&userid)
+	if err != nil {
+		respondWithJSON(w, http.StatusUnauthorized, map[string]string{"message": "Invalid session"})
+		return
+	}
+	respondWithJSON(w, http.StatusOK, userid)
+}
 
-
-} 
+func IsGmail(email string) bool {
+	re := regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9.]{5,29}@gmail\.com$`)
+	return re.MatchString(email)
+}

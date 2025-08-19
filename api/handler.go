@@ -12,11 +12,10 @@ import (
 	"sync"
 	"time"
 
-	"jj/database" // Import the database package
-	"jj/models"   // Import your models
-
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"jj/database" // Import the database package
+	"jj/models"   // Import your models
 )
 
 type Client struct {
@@ -70,6 +69,11 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
+         req.Nickname = strings.TrimSpace(req.Nickname)
+		 req.FirstName = strings.TrimSpace(req.FirstName)
+		 req.LastName = strings.TrimSpace(req.LastName)
+		 req.Password = strings.TrimSpace(req.Password)
+
 	if (len(req.Nickname) < 2 || len(req.Nickname) > 10) || (len(req.FirstName) < 2 || len(req.FirstName) > 10) || (len(req.LastName) < 2 || len(req.LastName) > 10) || (len(req.Password) < 2 || len(req.Password) > 10) || (req.Age > 100 || req.Age < 20) {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
@@ -380,7 +384,8 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 		RespondWithError(w, http.StatusBadRequest, "Invalid request format")
 		return
 	}
-
+     req.Title = strings.TrimSpace(req.Title)
+	 req.Content = strings.TrimSpace(req.Content)
 	if (len(req.Title) < 5 || len(req.Title) > 50) || (len(req.Content) < 5 || len(req.Content) > 50) || req.Category == "" {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
@@ -484,7 +489,7 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.PostID == "" || req.Content == "" {
+	if req.PostID == "" || strings.TrimSpace(req.Content )== "" {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}

@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
-            "jj/api"
+	"jj/api"
 	"jj/database"
 	"jj/models"
 
@@ -281,7 +282,7 @@ func HandlePrivateMessage(client *models.Client, senderID, receiverID, content, 
 			"eroor": "try  a better message",
 		},
 	}
-	if len(content) > 100 || content == "" {
+	if len(content) > 100 || strings.TrimSpace(content) == "" {
 		client.Conn.WriteJSON(eroor)
 		return
 	}

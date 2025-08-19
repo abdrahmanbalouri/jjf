@@ -22,22 +22,22 @@ export class ChatManager {
         this.socket.onmessage = (event) => {
             if (!event.data) return;
             const message = JSON.parse(event.data);
-            console.log(message.payload.receiverId, this.app.currentUser.id );
-            console.log( message.payload.senderId,this.app.currentUser.id);
-            
-            
-            
+            console.log(message.payload.receiverId, this.app.currentUser.id);
+            console.log(message.payload.senderId, this.app.currentUser.id);
+
+
+
             switch (message.type) {
                 case 'offset':
-                    if((message.payload.receiverId== this.app.currentUser.id && message.pyload.senderId == this.app.currentConversation) || (message.payload.senderId==this.app.currentUser.id&&message.payload.receiverId == this.app.currentConversation ) ){
-                      
-                        
+                    if ((message.payload.receiverId == this.app.currentUser.id && message.pyload.senderId == this.app.currentConversation) || (message.payload.senderId == this.app.currentUser.id && message.payload.receiverId == this.app.currentConversation)) {
+
+
                         this.offset++
                         console.log(this.offset);
-                        
+
                     }
-                break
-               
+                    break
+
                 case 'online_users':
                     this.loadUsers();
                     break;
@@ -164,117 +164,87 @@ export class ChatManager {
     }
 
     async startConversation(userId, userName) {
-    this.app.currentConversation = userId;
+        // this.app.initWebSocket()
+        this.app.currentConversation = userId;
+        const form = document.getElementById('message-form');
+        if (form) {
+            form.dataset.userId = userId;
+        } else {
+            console.error('Message form not found!');
+            return;
+        }
+        const typingIndicator = document.getElementById('typing-indicator');
+        if (typingIndicator) {
+            typingIndicator.textContent = '';
+        }
+        // Reset pagination state
+        this.offset = 0; // Reset offset to 0 for a new conversation
+        this.isLoadingMessages = false;
+        document.getElementById('receiver-name').textContent = `${userName}`;
+        document.getElementById('conversation-panel').classList.remove('hidden');
+        document.getElementById('message-content').focus();
+        const backButton = document.getElementById('back-to-users');
+        if (backButton) {
+            backButton.addEventListener('click', () => {
+                this.closeConversation();
+            });
+        }
 
-    const form = document.getElementById('message-form');
-    if (!form || !form.parentNode) {
-        console.error('Message form or its parent not found!');
-        return;
-    }
-    form.dataset.userId = userId; 
-
-    const newForm = form.cloneNode(true);
-    if (form.parentNode) {
+        // Load initial 10 messages
+        await this.loadMessages(userId);
+        await this.markMessagesAsRead(userId);
+        const newForm = form.cloneNode(true);
         form.parentNode.replaceChild(newForm, form);
-    } else {
-        console.error('Parent node of form is not available!');
-        return;
-    }
-
-    const typingIndicator = document.getElementById('typing-indicator');
-    if (typingIndicator) {
-        typingIndicator.textContent = '';
-    } else {
-        console.warn('Typing indicator not found!');
-    }
-
-    this.offset = 0;
-    this.isLoadingMessages = false;
-
-    const receiverName = document.getElementById('receiver-name');
-    if (receiverName) {
-        receiverName.textContent = userName;
-    } else {
-        console.warn('Receiver name element not found!');
-    }
-
-    const conversationPanel = document.getElementById('conversation-panel');
-    if (conversationPanel) {
-        conversationPanel.classList.remove('hidden');
-    } else {
-        console.error('Conversation panel not found!');
-        return;
-    }
-
-    const newMessageInput = newForm.querySelector('#message-content');
-    if (newMessageInput) {
-        newMessageInput.focus();
-    } else {
-        console.warn('Message input not found in new form!');
-    }
-
-    const backButton = document.getElementById('back-to-users');
-    if (backButton) {
-        backButton.removeEventListener('click', this.closeConversation.bind(this));
-        backButton.addEventListener('click', this.closeConversation.bind(this));
-    }
-
-    await this.loadMessages(userId);
-    await this.markMessagesAsRead(userId);
-
-    const submitHandler = (e) => {
-        e.preventDefault();
-        this.sendMessage(userId);
-        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+        if (this.typingTimeout) {
+            clearTimeout(this.typingTimeout);
+        }
+        const newMessageInput = document.getElementById('message-content');
+        newMessageInput.addEventListener('input', () => {
+            clearTimeout(this.typingTimeout);
+            this.socket.send(JSON.stringify({
+                type: 'typing',
+                payload: {
+                    receiverId: userId,
+                },
+            }));
+            this.typingTimeout = setTimeout(() => {
+                this.socket.send(JSON.stringify({
+                    type: 'stop_typing',
+                    payload: {
+                        receiverId: userId,
+                    },
+                }));
+            }, 1000);
+        });
+        newForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.sendMessage(userId);
             this.socket.send(JSON.stringify({
                 type: 'stop_typing',
-                payload: { receiverId: userId },
+                payload: {
+                    receiverId: userId,
+                },
             }));
-        } else {
-            console.warn('WebSocket is not connected, cannot send stop_typing event');
+        });
+        // Add throttled scroll event listener
+        const messagesContainer = document.getElementById('messages-container');
+        if (messagesContainer) {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            // Remove any existing scroll listeners to prevent duplicates
+            messagesContainer.onscroll = null;
+
+
+            messagesContainer.onscroll = this.throttle(() => {
+
+
+                if (messagesContainer.scrollTop <= 100 && !this.isLoadingMessages) {
+                    this.loadMoreMessages(userId);
+                }
+
+
+            }, 2000);
         }
-    };
-    newForm.removeEventListener('submit', submitHandler);
-    newForm.addEventListener('submit', submitHandler);
-
-    if (newMessageInput) {
-        newMessageInput.removeEventListener('input', this.handleInput);
-        this.handleInput = () => {
-            clearTimeout(this.typingTimeout);
-            if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-                this.socket.send(JSON.stringify({
-                    type: 'typing',
-                    payload: { receiverId: userId },
-                }));
-                this.typingTimeout = setTimeout(() => {
-                    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-                        this.socket.send(JSON.stringify({
-                            type: 'stop_typing',
-                            payload: { receiverId: userId },
-                        }));
-                    }
-                }, 1000);
-            } else {
-                console.warn('WebSocket is not connected, cannot send typing event');
-            }
-        };
-        newMessageInput.addEventListener('input', this.handleInput);
     }
-
-    const messagesContainer = document.getElementById('messages-container');
-    if (messagesContainer) {
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        messagesContainer.removeEventListener('scroll', this.handleScroll);
-        this.handleScroll = this.throttle(() => {
-            if (messagesContainer.scrollTop <= 100 && !this.isLoadingMessages) {
-                this.loadMoreMessages(userId);
-            }
-        }, 2000);
-        messagesContainer.addEventListener('scroll', this.handleScroll);
-    } else {
-        console.warn('Messages container not found!');
-    }
-}
     closeConversation() {
         document.getElementById('conversation-panel').classList.add('hidden');
 
@@ -295,17 +265,20 @@ export class ChatManager {
             const messages = await response.json();
             const container = document.getElementById('messages-container');
 
-            if (!messages || !container) return;
+            if ((!messages && this.offset==0)) {
+                console.log(2222);
+
+                       container.innerHTML=""
+                container.insertAdjacentHTML('afterbegin', "");
+
+                return;
+            }else if(!messages) return
 
             // If it's the initial load (offset 0), clear container
             if (this.offset === 0) {
                 container.innerHTML = '';
             }
 
-            if (messages.length === 0) {
-                // No more messages to load
-                return;
-            }
 
             // Prepend messages for older messages, append for initial load
             const messageHtml = messages.map(message => `
@@ -317,10 +290,10 @@ export class ChatManager {
                     <div class="message-content">${message.content}</div>
                 </div>
             `).join('');
-            
+
             // Note: with offset-based pagination, we always prepend older messages
             container.insertAdjacentHTML('afterbegin', messageHtml);
-            
+
         } catch (error) {
             console.error('Error loading messages:', error);
             document.getElementById('messages-container').innerHTML =
@@ -335,17 +308,17 @@ export class ChatManager {
 
         const messagesContainer = document.getElementById('messages-container');
         const oldScrollHeight = messagesContainer.scrollHeight;
-        
+
         // Increment offset to fetch the next batch of messages
         this.offset += 10;
-        
+
         await this.loadMessages(userId);
-        
+
         // Adjust scroll position to maintain view
         messagesContainer.scrollTop = messagesContainer.scrollHeight - oldScrollHeight;
     }
 
-   async handleTypingIndicator(payload) {
+    async handleTypingIndicator(payload) {
         const token = this.getCookie('session_id');
         try {
             const response = await fetch(`/api/auto?with=${token}`);
@@ -400,6 +373,7 @@ export class ChatManager {
             const response = await fetch(`/api/messages?with=${senderId}`);
             if (!response.ok) throw new Error('Failed to fetch messages');
             const messages = await response.json();
+            if (!messages) return
             for (const message of messages) {
                 if (message.senderId === senderId && !message.isRead) {
                     this.socket.send(JSON.stringify({

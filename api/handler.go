@@ -390,13 +390,10 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
-	re := regexp.MustCompile(`<[^>]+>`)
-	title := re.ReplaceAllString(req.Title, "")
-	content := re.ReplaceAllString(req.Title, "")
+	 title := models.Skip(req.Title)
+	 content:=  models.Skip(req.Content)
 
-	// Trim any extra whitespace
-	title = strings.TrimSpace(title)
-	content = strings.TrimSpace(content)
+	
 
 	postID := uuid.New().String()
 	_, err = database.DB.Exec(`
@@ -497,10 +494,7 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
-	re := regexp.MustCompile(`<[^>]+>`)
-	sanitizedContent := re.ReplaceAllString(req.Content, "")
-	// Trim any extra whitespace
-	sanitizedContent = strings.TrimSpace(sanitizedContent)
+	 sanitizedContent:= models.Skip(req.Content)
 
 	commentID := uuid.New().String()
 	_, err = database.DB.Exec(`

@@ -12,10 +12,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 	"jj/database" // Import the database package
 	"jj/models"   // Import your models
+
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Client struct {

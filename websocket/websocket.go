@@ -281,7 +281,7 @@ func HandlePrivateMessage(client *models.Client, senderID, receiverID, content, 
 			"eroor": "try  a better message",
 		},
 	}
-	if len(content) > 30 || content == "" {
+	if len(content) > 100 || content == "" {
 		client.Conn.WriteJSON(eroor)
 		return
 	}

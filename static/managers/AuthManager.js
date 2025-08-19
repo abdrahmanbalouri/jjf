@@ -54,6 +54,8 @@ export class AuthManager {
         }
     }
 
+    
+
     async handleLogin(e) {
         e.preventDefault();
         const identifier = document.getElementById('login-identifier').value;

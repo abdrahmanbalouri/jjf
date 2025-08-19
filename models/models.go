@@ -1,7 +1,7 @@
 package models
 
 import (
-	"regexp"
+	"html"
 
 	"github.com/gorilla/websocket"
 )
@@ -19,8 +19,5 @@ type Client struct {
 }
 
 func Skip(str string) string {
-	re := regexp.MustCompile(`<[^>]+>`)
-	skip := re.ReplaceAllString(str, "")
-	content := re.ReplaceAllString(skip, "")
-    return   content
+	return html.EscapeString(str)
 }

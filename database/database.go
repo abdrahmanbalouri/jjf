@@ -3,7 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"log"
+	 "log"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -17,6 +17,13 @@ func InitDB(dataSourceName string) error {
 	DB, err = sql.Open("sqlite3", dataSourceName)
 	if err != nil {
 		return fmt.Errorf("failed to open database: %w", err)
+	}
+
+	// Enable foreign key support
+	_, err = DB.Exec("PRAGMA foreign_keys = ON")
+	if err != nil {
+		DB.Close()
+		return fmt.Errorf("failed to enable foreign keys: %w", err)
 	}
 
 	if err = DB.Ping(); err != nil {
@@ -48,7 +55,7 @@ func CreateTables() error {
 			age INTEGER,
 			gender TEXT,
 			first_name TEXT,
-		    token TEXT UNIQUE,
+			token TEXT UNIQUE,
 			last_name TEXT,
 			email TEXT UNIQUE NOT NULL,
 			password TEXT NOT NULL,
@@ -63,7 +70,7 @@ func CreateTables() error {
 			title TEXT,
 			content TEXT,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			FOREIGN KEY(user_id) REFERENCES users(id)
+			FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 		)`,
 		`CREATE TABLE IF NOT EXISTS comments (
 			id TEXT PRIMARY KEY,
@@ -71,19 +78,19 @@ func CreateTables() error {
 			user_id TEXT NOT NULL,
 			content TEXT,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			FOREIGN KEY(post_id) REFERENCES posts(id),
-			FOREIGN KEY(user_id) REFERENCES users(id)
+			FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
+			FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 		)`,
 		`CREATE TABLE IF NOT EXISTS private_messages (
-          idss INTEGER PRIMARY KEY AUTOINCREMENT,
-			id TEXT ,
+			idss INTEGER PRIMARY KEY AUTOINCREMENT,
+			id TEXT UNIQUE,
 			sender_id TEXT NOT NULL,
 			receiver_id TEXT NOT NULL,
 			content TEXT,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			is_read BOOLEAN DEFAULT FALSE,
-			FOREIGN KEY(sender_id) REFERENCES users(id),
-			FOREIGN KEY(receiver_id) REFERENCES users(id)
+			FOREIGN KEY(sender_id) REFERENCES users(id) ON DELETE CASCADE,
+			FOREIGN KEY(receiver_id) REFERENCES users(id) ON DELETE CASCADE
 		)`,
 	}
 

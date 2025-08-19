@@ -472,6 +472,7 @@ button:active {
   flex-direction: column;
   background: var(--surface-color);
   min-width: 0;
+  max-width: 300px;
 
 
 

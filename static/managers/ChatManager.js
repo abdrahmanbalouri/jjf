@@ -29,7 +29,7 @@ export class ChatManager {
             
             switch (message.type) {
                 case 'offset':
-                    if(message.payload.receiverId== this.app.currentUser.id || message.payload.senderId==this.app.currentUser.id ){
+                    if((message.payload.receiverId== this.app.currentUser.id && message.pyload.senderId == this.app.currentConversation) || message.payload.senderId==this.app.currentUser.id ){
                       
                         
                         this.offset++

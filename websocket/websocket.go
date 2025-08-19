@@ -20,7 +20,7 @@ import (
 // Global WebSocket-related variables managed within this package
 var (
 	Clients      = make(map[*models.Client]bool) // Use models.Client
-  	ClientsMutex sync.Mutex
+	ClientsMutex sync.Mutex
 	Upgrader     = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool { return true },
 	}
@@ -28,7 +28,6 @@ var (
 
 // WsHandler manages WebSocket connections.
 func WsHandler(w http.ResponseWriter, r *http.Request) {
-
 	conn, err := Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("WebSocket upgrade error:", err)
@@ -36,8 +35,8 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Authentication
-	 ids,err:= authenticateUser(r)
-	 if err != nil {
+	ids, err := authenticateUser(r)
+	if err != nil {
 		api.RespondWithError(w, http.StatusUnauthorized, "Authentication required")
 		return
 	}
@@ -135,25 +134,22 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		
-		if(api.Lougout){
+
+		if api.Lougout {
 			_, err2 := database.DB.Exec("UPDATE users SET is_online = FALSE WHERE id = ?", user.ID)
 			fmt.Println("mmm")
 			if err2 != nil {
-				
-				
 			}
 
 			for c := range Clients {
-		  if c.UserID == user.ID {
-		      fmt.Println("22")
-				c.Conn.Close()
-				delete(Clients, c)
-			
-		}
-	}
+				if c.UserID == user.ID {
+					fmt.Println("22")
+					c.Conn.Close()
+					delete(Clients, c)
 
-			
+				}
+			}
+
 		}
 		BroadcastOnlineUsers()
 	}()
@@ -316,7 +312,7 @@ func HandlePrivateMessage(client *models.Client, senderID, receiverID, content, 
 			"isRead":          false,
 		},
 	}
-		ofsset := map[string]interface{}{
+	ofsset := map[string]interface{}{
 		"type": "offset",
 		"payload": map[string]interface{}{
 			"messageId":       messageID,
@@ -354,7 +350,7 @@ func HandlePrivateMessage(client *models.Client, senderID, receiverID, content, 
 			}
 		}
 	}
-		for c := range Clients {
+	for c := range Clients {
 		if c.UserID == senderID {
 			if err := c.Conn.WriteJSON(ofsset); err != nil {
 				log.Printf("Failed to send message to sender %s: %v", senderID, err)
@@ -372,9 +368,7 @@ func HandlePrivateMessage(client *models.Client, senderID, receiverID, content, 
 			}
 		}
 	}
-	
 }
-
 
 // HandleMarkRead marks a message as read in the database and notifies the sender.
 func HandleMarkRead(receiverID, senderID, messageID string) {
@@ -421,17 +415,20 @@ func HandleTyping(client *models.Client, senderID, senderNickname, receiverID st
 			err := c.Conn.WriteJSON(struct {
 				Type    string `json:"type"`
 				Payload struct {
-					SenderID   string `json:"senderId"`
+					Sender   string `json:"senderId"`
 					SenderName string `json:"senderName"`
+					Receiver   string `json:"receiver"`
 				} `json:"payload"`
 			}{
 				Type: "typing",
 				Payload: struct {
-					SenderID   string `json:"senderId"`
+					Sender  string `json:"senderId"`
 					SenderName string `json:"senderName"`
+					Receiver   string `json:"receiver"`
 				}{
-					SenderID:   senderID,
+					Sender:   senderID,
 					SenderName: senderNickname,
+					Receiver:   receiverID,
 				},
 			})
 			if err != nil {
@@ -455,15 +452,18 @@ func HandleStopTyping(client *models.Client, senderID, senderNickname, receiverI
 				Payload struct {
 					SenderID   string `json:"senderId"`
 					SenderName string `json:"senderName"`
+					Receiver   string `json:"receiver"`
 				} `json:"payload"`
 			}{
 				Type: "stop_typing",
 				Payload: struct {
 					SenderID   string `json:"senderId"`
 					SenderName string `json:"senderName"`
+					Receiver   string `json:"receiver"`
 				}{
 					SenderID:   senderID,
 					SenderName: senderNickname,
+					Receiver:   receiverID,
 				},
 			})
 			if err != nil {

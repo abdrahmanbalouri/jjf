@@ -736,6 +736,7 @@ button:active {
   margin-left: 8px;
   min-height: 30px;
   font-weight: 500;
+  z-index: 20000000000000;
 }
 
 .message-form {

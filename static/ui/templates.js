@@ -160,7 +160,6 @@ export const messages = `
     <!-- Liste des utilisateurs -->
     <div class="users-panel">
         <h3>Users ....</h3>
-        <div id="typing-indicator" class="typing-indicator"></div>
         <div id="users-list"></div>
     </div>
 

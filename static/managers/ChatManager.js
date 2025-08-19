@@ -22,11 +22,6 @@ export class ChatManager {
         this.socket.onmessage = (event) => {
             if (!event.data) return;
             const message = JSON.parse(event.data);
-            console.log(message.payload.receiverId, this.app.currentUser.id);
-            console.log(message.payload.senderId, this.app.currentUser.id);
-
-
-
             switch (message.type) {
                 case 'offset':
                     if ((message.payload.receiverId == this.app.currentUser.id && message.pyload.senderId == this.app.currentConversation) || (message.payload.senderId == this.app.currentUser.id && message.payload.receiverId == this.app.currentConversation)) {
@@ -69,8 +64,11 @@ export class ChatManager {
         };
         this.socket.onclose = () => {
             console.log('WebSocket disconnected');
-            const typingIndicator = document.getElementById('typing-indicator');
-            typingIndicator.textContent = '';
+            const typingIndicator = document.querySelectorAll('.typing-indicator');
+             typingIndicator.forEach((id)=>{
+
+                 id.textContent = '';
+             })
         };
         this.socket.onerror = (error) => {
             console.error('WebSocket error:', error);
@@ -126,14 +124,19 @@ export class ChatManager {
     }
 
     renderUsers(users) {
-
+               users.forEach((user)=>{
+                console.log(user.id);
+                
+               })
         const container = document.getElementById('users-list');
         if (!container) return;
         container.innerHTML = users
             .filter(user => user.id !== this.app.currentUser.id)
             .map(user => `
+                <div id="typing-indicator${user.id}" class="typing-indicator"></div>
                 <div class="user ${user.isOnline ? 'online' : 'offline'}"  data-user-id="${user.id}"
            data-role="${user.nickname}" >
+
                     <span class="status ${user.isOnline ? 'online' : 'offline'}"></span>
                     ${user.nickname}
                 </div>
@@ -265,14 +268,13 @@ export class ChatManager {
             const messages = await response.json();
             const container = document.getElementById('messages-container');
 
-            if ((!messages && this.offset==0)) {
-                console.log(2222);
+            if ((!messages && this.offset == 0)) {
 
-                       container.innerHTML=""
+                container.innerHTML = ""
                 container.insertAdjacentHTML('afterbegin', "");
 
                 return;
-            }else if(!messages) return
+            } else if (!messages) return
 
             // If it's the initial load (offset 0), clear container
             if (this.offset === 0) {
@@ -319,6 +321,9 @@ export class ChatManager {
     }
 
     async handleTypingIndicator(payload) {
+        console.log(payload);
+        
+        
         const token = this.getCookie('session_id');
         try {
             const response = await fetch(`/api/auto?with=${token}`);
@@ -337,10 +342,19 @@ export class ChatManager {
             console.log(err);
 
         }
-        const typingIndicator = document.getElementById('typing-indicator');
-        if (typingIndicator && payload.senderId === this.app.currentConversation) {
+        
+        const typingIndicator = document.getElementById(`typing-indicator${payload.senderId}`);
+        console.log(payload.senderId,'hhh');
+        
+       
+        
+        if (typingIndicator) {
+
             typingIndicator.textContent = `${payload.senderName} is typing`;
         }
+             console.log(typingIndicator);
+             
+
     }
 
     async handleStopTyping(payload) {
@@ -362,10 +376,12 @@ export class ChatManager {
             console.log(err);
 
         }
-        const typingIndicator = document.getElementById('typing-indicator');
-        if (typingIndicator && payload.senderId === this.app.currentConversation) {
+        const typingIndicator = document.getElementById(`typing-indicator${payload.senderId}`);
+        if (typingIndicator) {
             typingIndicator.textContent = '';
+
         }
+
     }
 
     async markMessagesAsRead(senderId) {

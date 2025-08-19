@@ -22,11 +22,22 @@ export class ChatManager {
         this.socket.onmessage = (event) => {
             if (!event.data) return;
             const message = JSON.parse(event.data);
-
+            console.log(message.payload.receiverId, this.app.currentUser.id );
+            console.log( message.payload.senderId,this.app.currentUser.id);
+            
+            
+            
             switch (message.type) {
-                // case 'user_status':
-                //     this.updateUserStatus(message.userId, message.isOnline);
-                //     break;
+                case 'offset':
+                    if(message.payload.receiverId== this.app.currentUser.id || message.payload.senderId==this.app.currentUser.id ){
+                      
+                        
+                        this.offset++
+                        console.log(this.offset);
+                        
+                    }
+                break
+               
                 case 'online_users':
                     this.loadUsers();
                     break;
@@ -59,7 +70,6 @@ export class ChatManager {
         this.socket.onclose = () => {
             console.log('WebSocket disconnected');
             const typingIndicator = document.getElementById('typing-indicator');
-            console.log(typingIndicator);
             typingIndicator.textContent = '';
         };
         this.socket.onerror = (error) => {
@@ -116,7 +126,6 @@ export class ChatManager {
     }
 
     renderUsers(users) {
-        console.log(users);
 
         const container = document.getElementById('users-list');
         if (!container) return;
@@ -131,7 +140,6 @@ export class ChatManager {
             `).join('');
         document.querySelectorAll('.user[data-user-id]').forEach(item => {
             item.addEventListener('click', () => {
-                console.log(item);
 
                 const userId = item.dataset.userId;
                 const userName = item.dataset.role;
@@ -343,7 +351,6 @@ export class ChatManager {
             const response = await fetch(`/api/auto?with=${token}`);
             if (!response.ok) throw new Error('Failed to load users');
             const id = await response.json();
-            console.log(id, '--------------------------');
 
 
             if (id !== this.app.currentUser.id) {
@@ -369,7 +376,6 @@ export class ChatManager {
             const response = await fetch(`/api/auto?with=${token}`);
             if (!response.ok) throw new Error('Failed to load users');
             const id = await response.json();
-            console.log(id, '--------------------------');
 
 
             if (id !== this.app.currentUser.id) {
@@ -418,7 +424,6 @@ export class ChatManager {
             const response = await fetch(`/api/auto?with=${token}`);
             if (!response.ok) throw new Error('Failed to load users');
             const id = await response.json();
-            console.log(id, '--------------------------');
 
 
             if (id !== this.app.currentUser.id) {
@@ -456,7 +461,6 @@ export class ChatManager {
             const response = await fetch(`/api/auto?with=${token}`);
             if (!response.ok) throw new Error('Failed to load users');
             const id = await response.json();
-            console.log(id, '--------------------------');
 
 
             if (id !== this.app.currentUser.id) {
@@ -474,7 +478,6 @@ export class ChatManager {
 
 
         if (payload.senderId == this.app.currentUser.id && payload.receiverId == this.app.currentConversation) {
-            console.log(1111);
 
             this.renderMessage(payload);
 
@@ -548,7 +551,6 @@ export class ChatManager {
             const response = await fetch(`/api/auto?with=${token}`);
             if (!response.ok) throw new Error('Failed to load users');
             const id = await response.json();
-            console.log(id, '--------------------------');
 
 
             if (id !== this.app.currentUser.id) {
@@ -595,3 +597,4 @@ export class ChatManager {
         }
     }
 }
+

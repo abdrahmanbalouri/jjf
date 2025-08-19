@@ -37,7 +37,6 @@ export class PostManager {
             const response = await fetch(`/api/auto?with=${token}`);
               if (!response.ok) throw new Error('Failed to load users');
             const id = await response.json();
-            console.log(id,'--------------------------');
             
                  
               if (id !== this.app.currentUser.id) {
@@ -168,7 +167,6 @@ export class PostManager {
          const response = await fetch(`/api/auto?with=${token}`);
            if (!response.ok) throw new Error('Failed to load users');
          const id = await response.json();
-         console.log(id,'--------------------------');
          
               
            if (id !== this.app.currentUser.id) {

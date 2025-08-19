@@ -315,6 +315,19 @@ func HandlePrivateMessage(client *models.Client, senderID, receiverID, content, 
 			"isRead":          false,
 		},
 	}
+		ofsset := map[string]interface{}{
+		"type": "offset",
+		"payload": map[string]interface{}{
+			"messageId":       messageID,
+			"clientMessageId": clientMessageID,
+			"senderId":        senderID,
+			"senderName":      senderNickname,
+			"receiverId":      receiverID,
+			"content":         Contentformessage,
+			"timestamp":       time.Now().Format(time.RFC3339),
+			"isRead":          false,
+		},
+	}
 
 	ClientsMutex.Lock()
 	defer ClientsMutex.Unlock()
@@ -340,7 +353,27 @@ func HandlePrivateMessage(client *models.Client, senderID, receiverID, content, 
 			}
 		}
 	}
+		for c := range Clients {
+		if c.UserID == senderID {
+			if err := c.Conn.WriteJSON(ofsset); err != nil {
+				log.Printf("Failed to send message to sender %s: %v", senderID, err)
+				c.Conn.Close()
+				delete(Clients, c)
+			}
+		}
+	}
+	for c := range Clients {
+		if c.UserID == receiverID {
+			if err := c.Conn.WriteJSON(ofsset); err != nil {
+				log.Printf("Failed to send message to client %s: %v", c.UserID, err)
+				c.Conn.Close()
+				delete(Clients, c)
+			}
+		}
+	}
+	
 }
+
 
 // HandleMarkRead marks a message as read in the database and notifies the sender.
 func HandleMarkRead(receiverID, senderID, messageID string) {

@@ -27,12 +27,7 @@ var (
 
 // WsHandler manages WebSocket connections.
 func WsHandler(w http.ResponseWriter, r *http.Request) {
-	k := r.Header.Get("Accept")
 
-	if k != "" {
-		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
-		return
-	}
 	conn, err := Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("WebSocket upgrade error:", err)

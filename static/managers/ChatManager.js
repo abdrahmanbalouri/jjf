@@ -156,89 +156,118 @@ export class ChatManager {
     }
 
     async startConversation(userId, userName) {
-        this.app.initWebSocket()
-        this.app.currentConversation = userId;
-        const form = document.getElementById('message-form');
-        if (form) {
-            form.dataset.userId = userId;
-        } else {
-            console.error('Message form not found!');
-            return;
-        }
-        const typingIndicator = document.getElementById('typing-indicator');
-        if (typingIndicator) {
-            typingIndicator.textContent = '';
-        }
-        // Reset pagination state
-        this.offset = 0; // Reset offset to 0 for a new conversation
-        this.isLoadingMessages = false;
-        document.getElementById('receiver-name').textContent = `${userName}`;
-        document.getElementById('conversation-panel').classList.remove('hidden');
-        document.getElementById('message-content').focus();
-        const backButton = document.getElementById('back-to-users');
-        if (backButton) {
-            backButton.addEventListener('click', () => {
-                this.closeConversation();
-            });
-        }
+    this.app.currentConversation = userId;
 
-        // Load initial 10 messages
-        await this.loadMessages(userId);
-        await this.markMessagesAsRead(userId);
-        const newForm = form.cloneNode(true);
+    const form = document.getElementById('message-form');
+    if (!form || !form.parentNode) {
+        console.error('Message form or its parent not found!');
+        return;
+    }
+    form.dataset.userId = userId; 
+
+    const newForm = form.cloneNode(true);
+    if (form.parentNode) {
         form.parentNode.replaceChild(newForm, form);
-        if (this.typingTimeout) {
-            clearTimeout(this.typingTimeout);
-        }
-        const newMessageInput = document.getElementById('message-content');
-        newMessageInput.addEventListener('input', () => {
-            clearTimeout(this.typingTimeout);
-            this.socket.send(JSON.stringify({
-                type: 'typing',
-                payload: {
-                    receiverId: userId,
-                },
-            }));
-            this.typingTimeout = setTimeout(() => {
-                this.socket.send(JSON.stringify({
-                    type: 'stop_typing',
-                    payload: {
-                        receiverId: userId,
-                    },
-                }));
-            }, 1000);
-        });
-        newForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.sendMessage(userId);
+    } else {
+        console.error('Parent node of form is not available!');
+        return;
+    }
+
+    const typingIndicator = document.getElementById('typing-indicator');
+    if (typingIndicator) {
+        typingIndicator.textContent = '';
+    } else {
+        console.warn('Typing indicator not found!');
+    }
+
+    this.offset = 0;
+    this.isLoadingMessages = false;
+
+    const receiverName = document.getElementById('receiver-name');
+    if (receiverName) {
+        receiverName.textContent = userName;
+    } else {
+        console.warn('Receiver name element not found!');
+    }
+
+    const conversationPanel = document.getElementById('conversation-panel');
+    if (conversationPanel) {
+        conversationPanel.classList.remove('hidden');
+    } else {
+        console.error('Conversation panel not found!');
+        return;
+    }
+
+    const newMessageInput = newForm.querySelector('#message-content');
+    if (newMessageInput) {
+        newMessageInput.focus();
+    } else {
+        console.warn('Message input not found in new form!');
+    }
+
+    const backButton = document.getElementById('back-to-users');
+    if (backButton) {
+        backButton.removeEventListener('click', this.closeConversation.bind(this));
+        backButton.addEventListener('click', this.closeConversation.bind(this));
+    }
+
+    await this.loadMessages(userId);
+    await this.markMessagesAsRead(userId);
+
+    const submitHandler = (e) => {
+        e.preventDefault();
+        this.sendMessage(userId);
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify({
                 type: 'stop_typing',
-                payload: {
-                    receiverId: userId,
-                },
+                payload: { receiverId: userId },
             }));
-        });
-        // Add throttled scroll event listener
-        const messagesContainer = document.getElementById('messages-container');
-        if (messagesContainer) {
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            // Remove any existing scroll listeners to prevent duplicates
-            messagesContainer.onscroll = null;
-
-
-            messagesContainer.onscroll = this.throttle(() => {
-
-
-                if (messagesContainer.scrollTop <= 100 && !this.isLoadingMessages) {
-                    this.loadMoreMessages(userId);
-                }
-
-
-            }, 2000);
+        } else {
+            console.warn('WebSocket is not connected, cannot send stop_typing event');
         }
+    };
+    newForm.removeEventListener('submit', submitHandler);
+    newForm.addEventListener('submit', submitHandler);
+
+    if (newMessageInput) {
+        newMessageInput.removeEventListener('input', this.handleInput);
+        this.handleInput = () => {
+            clearTimeout(this.typingTimeout);
+            if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+                this.socket.send(JSON.stringify({
+                    type: 'typing',
+                    payload: { receiverId: userId },
+                }));
+                this.typingTimeout = setTimeout(() => {
+                    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+                        this.socket.send(JSON.stringify({
+                            type: 'stop_typing',
+                            payload: { receiverId: userId },
+                        }));
+                    }
+                }, 1000);
+            } else {
+                console.warn('WebSocket is not connected, cannot send typing event');
+            }
+        };
+        newMessageInput.addEventListener('input', this.handleInput);
     }
+
+    const messagesContainer = document.getElementById('messages-container');
+    if (messagesContainer) {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        messagesContainer.removeEventListener('scroll', this.handleScroll);
+        this.handleScroll = this.throttle(() => {
+            if (messagesContainer.scrollTop <= 100 && !this.isLoadingMessages) {
+                this.loadMoreMessages(userId);
+            }
+        }, 2000);
+        messagesContainer.addEventListener('scroll', this.handleScroll);
+    } else {
+        console.warn('Messages container not found!');
+    }
+}
     closeConversation() {
-        // Cacher le panneau de conversation et réafficher la liste des utilisateurs
         document.getElementById('conversation-panel').classList.add('hidden');
 
         this.app.currentConversation = null;

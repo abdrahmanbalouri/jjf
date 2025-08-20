@@ -65,10 +65,10 @@ export class ChatManager {
         this.socket.onclose = () => {
             console.log('WebSocket disconnected');
             const typingIndicator = document.querySelectorAll('.typing-indicator');
-             typingIndicator.forEach((id)=>{
+            typingIndicator.forEach((id) => {
 
-                 id.textContent = '';
-             })
+                id.textContent = '';
+            })
         };
         this.socket.onerror = (error) => {
             console.error('WebSocket error:', error);
@@ -124,10 +124,10 @@ export class ChatManager {
     }
 
     renderUsers(users) {
-               users.forEach((user)=>{
-                console.log(user.id);
-                
-               })
+        users.forEach((user) => {
+            console.log(user.id);
+
+        })
         const container = document.getElementById('users-list');
         if (!container) return;
         container.innerHTML = users
@@ -232,6 +232,8 @@ export class ChatManager {
         // Add throttled scroll event listener
         const messagesContainer = document.getElementById('messages-container');
         if (messagesContainer) {
+
+
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
             // Remove any existing scroll listeners to prevent duplicates
             messagesContainer.onscroll = null;
@@ -245,7 +247,7 @@ export class ChatManager {
                 }
 
 
-            }, 2000);
+            }, 500);
         }
     }
     closeConversation() {
@@ -322,8 +324,8 @@ export class ChatManager {
 
     async handleTypingIndicator(payload) {
         console.log(payload);
-        
-        
+
+
         const token = this.getCookie('session_id');
         try {
             const response = await fetch(`/api/auto?with=${token}`);
@@ -342,18 +344,18 @@ export class ChatManager {
             console.log(err);
 
         }
-        
+
         const typingIndicator = document.getElementById(`typing-indicator${payload.senderId}`);
-        console.log(payload.senderId,'hhh');
-        
-       
-        
+        console.log(payload.senderId, 'hhh');
+
+
+
         if (typingIndicator) {
 
             typingIndicator.textContent = `${payload.senderName} is typing`;
         }
-             console.log(typingIndicator);
-             
+        console.log(typingIndicator);
+
 
     }
 

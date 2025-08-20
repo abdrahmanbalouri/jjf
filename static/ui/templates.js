@@ -10,7 +10,34 @@ export const login = `
                 </div>
                 <div class="nav-links hidden" id="user-links">
                     <span id="user-nickname-display"></span>
-                    <a href="#" id="nav-logout">Logout</a>
+                    <a href="#" id="nav-logout">Logout</a>his.app = app; // Reference to the main ForumApp instance
+    }
+
+    setupAuthEventListeners() {
+        // Auth navigation
+        document.getElementById('nav-register')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.app.showView('register');
+        });
+
+        document.getElementById('nav-login')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.app.showView('login');
+        });
+
+        document.getElementById('show-register')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.app.showView('register');
+        });
+
+        document.getElementById('show-login')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.app.showView('login');
+        });
+
+        // Auth forms
+        document.getElementById('login-form')?.addEventListener('submit', (e) => this.handleLogin(e));
+        document.getElementById('register-form')?.addEventListener('submit', (e) => this.handleRegister(e));
                 </div>
             </nav>
         </div>
@@ -49,11 +76,65 @@ export const register = `
             </nav>
         </div>
     </header>
-    <div class="view" id="register-view">
+    <div class="view" id="register-view">his.app = app; // Reference to the main ForumApp instance
+    }
+
+    setupAuthEventListeners() {
+        // Auth navigation
+        document.getElementById('nav-register')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.app.showView('register');
+        });
+
+        document.getElementById('nav-login')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.app.showView('login');
+        });
+
+        document.getElementById('show-register')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.app.showView('register');
+        });
+
+        document.getElementById('show-login')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.app.showView('login');
+        });
+
+        // Auth forms
+        document.getElementById('login-form')?.addEventListener('submit', (e) => this.handleLogin(e));
+        document.getElementById('register-form')?.addEventListener('submit', (e) => this.handleRegister(e));
         <h2>Register</h2>
         <div id="register-error" class="error"></div>
         <form id="register-form">
-            <div class="form-group">
+            <div class="form-group">his.app = app; // Reference to the main ForumApp instance
+    }
+
+    setupAuthEventListeners() {
+        // Auth navigation
+        document.getElementById('nav-register')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.app.showView('register');
+        });
+
+        document.getElementById('nav-login')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.app.showView('login');
+        });
+
+        document.getElementById('show-register')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.app.showView('register');
+        });
+
+        document.getElementById('show-login')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.app.showView('login');
+        });
+
+        // Auth forms
+        document.getElementById('login-form')?.addEventListener('submit', (e) => this.handleLogin(e));
+        document.getElementById('register-form')?.addEventListener('submit', (e) => this.handleRegister(e));
                 <label for="register-nickname">Username</label>
                 <input type="text" id="register-nickname" required>
             </div>

@@ -2,6 +2,7 @@
 export class PostManager {
     constructor(app) {
         this.app = app;
+        this.offsetpost = 0
     }
 
     setupPostEventListeners() {
@@ -17,38 +18,86 @@ export class PostManager {
 
     async loadPosts() {
         try {
-            const response = await fetch('/api/posts');
+            const response = await fetch(`/api/posts?with=${this.offsetpost}`);
+
             if (!response.ok) throw new Error('Failed to load posts');
             const posts = await response.json();
             this.renderPosts(posts || []);
+            const messagesContainer = document.getElementById('posts-container');
+            if (messagesContainer) {
+                //   messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                // Remove any existing scroll listeners to prevent duplicates
+                messagesContainer.onscroll = null;
+
+
+                messagesContainer.onscroll = this.throttle(() => {
+
+
+                    const scrollTop = messagesContainer.scrollTop;
+                    const scrollHeight = messagesContainer.scrollHeight;
+                    const clientHeight = messagesContainer.clientHeight;
+                    console.log(scrollTop, scrollHeight, clientHeight);
+
+                    console.log(scrollTop + clientHeight >= scrollHeight - 50);
+
+
+                    if (scrollTop + clientHeight >= scrollHeight - 10) {
+                        this.loadpost();
+                    }
+
+
+                }, 2000);
+            }
+
         } catch (error) {
             console.error('Error loading posts:', error);
             document.getElementById('posts-container').innerHTML =
                 '<div class="error">Failed to load posts. Please try again later.</div>';
         }
     }
+    async loadpost() {
 
+        const messagesContainer = document.getElementById('posts-container');
+
+        this.offsetpost += 10;
+
+        await this.loadPosts();
+
+
+    }
+    throttle(func, wait) {
+        let isThrottled = false;
+        return function (...args) {
+            if (!isThrottled) {
+                isThrottled = true;
+                func.apply(this, args);
+                setTimeout(() => {
+                    isThrottled = false;
+                }, wait);
+            }
+        };
+    }
     async handlePostCreate(e) {
-       
+
         e.preventDefault();
-            const token = this.getCookie('session_id');
-        try{
+        const token = this.getCookie('session_id');
+        try {
 
             const response = await fetch(`/api/auto?with=${token}`);
-              if (!response.ok) throw new Error('Failed to load users');
+            if (!response.ok) throw new Error('Failed to load users');
             const id = await response.json();
-            
-                 
-              if (id !== this.app.currentUser.id) {
-             if (this.app.socket) {
-                this.app.socket.close(); 
+
+
+            if (id !== this.app.currentUser.id) {
+                if (this.app.socket) {
+                    this.app.socket.close();
+                }
+                this.app.authManager.handleLogout()
+                return
             }
-           this.app.authManager.handleLogout()
-            return
-        }
-        }catch (err){
-           console.log(err);
-           
+        } catch (err) {
+            console.log(err);
+
         }
         const title = document.getElementById('post-title').value;
         const content = document.getElementById('post-content').value;
@@ -81,10 +130,10 @@ export class PostManager {
                 }, 2000)
             }
         } catch (error) {
-           this.app.authManager.handleLogout()
+            this.app.authManager.handleLogout()
         }
     }
-      getCookie(name) {
+    getCookie(name) {
         return document.cookie
             .split('; ')
             .find(row => row.startsWith(name + '='))
@@ -95,12 +144,17 @@ export class PostManager {
         const container = document.getElementById('posts-container');
         if (!container) return;
 
-        if (!posts || !Array.isArray(posts) || posts.length === 0) {
-            container.innerHTML = '<div>No posts yet. Be the first to post!</div>';
+        if (posts.length == 0) {
             return;
         }
 
-        container.innerHTML = posts.map(post => `
+        const scrollTop = container.scrollTop;
+        const clientHeight = container.clientHeight;
+        container.scrollTop = scrollTop - clientHeight
+
+
+
+        const postss = posts.map(post => `
             <div class="post" data-id="${post.id}">
                 <h3 class="post-title">${post.title}</h3>
                 <div class="post-meta">
@@ -114,6 +168,8 @@ export class PostManager {
                 </button>
             </div>
         `).join('');
+        container.insertAdjacentHTML('afterbegin', postss);
+
         // Event listeners for view-comments buttons are now handled by event delegation in setupPostEventListeners
     }
 
@@ -162,28 +218,28 @@ export class PostManager {
     async handleCommentCreate(e) {
         e.preventDefault();
         const token = this.getCookie('session_id');
-     try{
+        try {
 
-         const response = await fetch(`/api/auto?with=${token}`);
-           if (!response.ok) throw new Error('Failed to load users');
-         const id = await response.json();
-         
-              
-           if (id !== this.app.currentUser.id) {
-          if (this.app.socket) {
-             this.app.socket.close(); 
-         }
-        this.app.authManager.handleLogout()
-         return
-     }
-     }catch (err){
-        console.log(err);
-        
-     }
+            const response = await fetch(`/api/auto?with=${token}`);
+            if (!response.ok) throw new Error('Failed to load users');
+            const id = await response.json();
+
+
+            if (id !== this.app.currentUser.id) {
+                if (this.app.socket) {
+                    this.app.socket.close();
+                }
+                this.app.authManager.handleLogout()
+                return
+            }
+        } catch (err) {
+            console.log(err);
+
+        }
         const content = document.getElementById('popup-comment-content').value;
         const postId = e.target.dataset.postId;
 
-       
+
 
         try {
             const response = await fetch('/api/comments', {
@@ -198,7 +254,7 @@ export class PostManager {
             } else {
                 const error = await response.json();
                 const err = document.getElementById('comment-error')
-              if (error.error == "Authentication required") {
+                if (error.error == "Authentication required") {
                     throw Error('eror')
                 }
                 err.textContent = error.error
@@ -207,7 +263,7 @@ export class PostManager {
                 }, 2000)
             }
         } catch (error) {
-           this.app.authManager.handleLogout()
+            this.app.authManager.handleLogout()
 
         }
     }

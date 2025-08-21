@@ -69,10 +69,10 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-         req.Nickname = strings.TrimSpace(req.Nickname)
-		 req.FirstName = strings.TrimSpace(req.FirstName)
-		 req.LastName = strings.TrimSpace(req.LastName)
-		 req.Password = strings.TrimSpace(req.Password)
+	req.Nickname = strings.TrimSpace(req.Nickname)
+	req.FirstName = strings.TrimSpace(req.FirstName)
+	req.LastName = strings.TrimSpace(req.LastName)
+	req.Password = strings.TrimSpace(req.Password)
 
 	if (len(req.Nickname) < 2 || len(req.Nickname) > 10) || (len(req.FirstName) < 2 || len(req.FirstName) > 10) || (len(req.LastName) < 2 || len(req.LastName) > 10) || (len(req.Password) < 2 || len(req.Password) > 10) || (req.Age > 100 || req.Age < 20) {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
@@ -280,13 +280,18 @@ func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return
 	}
+	limit := 10
+	offset := r.URL.Query().Get("with")
+
+
 	rows, err := database.DB.Query(`
-        SELECT p.id, p.title, p.content, p.category, p.created_at, u.nickname
-        FROM posts p
-        JOIN users u ON p.user_id = u.id
-        ORDER BY p.created_at DESC`)
+    SELECT p.id, p.title, p.content, p.category, p.created_at, u.nickname
+    FROM posts p
+    JOIN users u ON p.user_id = u.id
+    ORDER BY p.created_at DESC
+    LIMIT ? OFFSET ?`, limit, offset)
 	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, "Failed to fetch posts")
+		log.Println("Query error:", err)
 		return
 	}
 	defer rows.Close()
@@ -384,16 +389,14 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 		RespondWithError(w, http.StatusBadRequest, "Invalid request format")
 		return
 	}
-     req.Title = strings.TrimSpace(req.Title)
-	 req.Content = strings.TrimSpace(req.Content)
+	req.Title = strings.TrimSpace(req.Title)
+	req.Content = strings.TrimSpace(req.Content)
 	if (len(req.Title) < 5 || len(req.Title) > 50) || (len(req.Content) < 5 || len(req.Content) > 50) || req.Category == "" {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
-	 title := models.Skip(req.Title)
-	 content:=  models.Skip(req.Content)
-
-	
+	title := models.Skip(req.Title)
+	content := models.Skip(req.Content)
 
 	postID := uuid.New().String()
 	_, err = database.DB.Exec(`
@@ -486,7 +489,7 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.PostID == "" || strings.TrimSpace(req.Content )== "" {
+	if req.PostID == "" || strings.TrimSpace(req.Content) == "" {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
@@ -494,7 +497,7 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 		RespondWithError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
-	 sanitizedContent:= models.Skip(req.Content)
+	sanitizedContent := models.Skip(req.Content)
 
 	commentID := uuid.New().String()
 	_, err = database.DB.Exec(`
@@ -630,7 +633,7 @@ func authenticateUser(r *http.Request) (string, error) {
 	var userID string
 	err = database.DB.QueryRow("SELECT id FROM users WHERE token = ?", cookie.Value).Scan(&userID)
 	if err != nil {
-		//fmt.Println(err)
+		// fmt.Println(err)
 		return "", err
 	}
 

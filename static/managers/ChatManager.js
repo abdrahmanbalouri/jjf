@@ -245,7 +245,7 @@ export class ChatManager {
                 }
 
 
-            }, 2000);
+            }, 500);
         }
     }
     closeConversation() {

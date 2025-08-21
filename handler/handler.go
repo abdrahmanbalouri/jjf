@@ -29,11 +29,5 @@ func Routes() {
 	http.HandleFunc("/ws", websocket.WsHandler)
 
 	// SPA fallback
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/" {
-			http.Redirect(w, r, "/", http.StatusSeeOther)
-			return
-		}
-		http.ServeFile(w, r, "./static/index.html")
-	})
+	http.HandleFunc("/", api.HomeHandler)
 }

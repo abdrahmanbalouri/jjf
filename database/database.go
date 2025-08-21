@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	 "log"
+   	_ "github.com/mattn/go-sqlite3"
 
-	_ "github.com/mattn/go-sqlite3"
-)
+  )
 
-// DB is the database connection instance.
+//  DB is the database connection instance.
 var DB *sql.DB
 
 // InitDB initializes the database connection.

@@ -626,12 +626,11 @@ func authenticateUser(r *http.Request) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(cookie)
 
 	var userID string
 	err = database.DB.QueryRow("SELECT id FROM users WHERE token = ?", cookie.Value).Scan(&userID)
 	if err != nil {
-		fmt.Println(err)
+		//fmt.Println(err)
 		return "", err
 	}
 
@@ -640,7 +639,6 @@ func authenticateUser(r *http.Request) (string, error) {
 
 func Auto(w http.ResponseWriter, r *http.Request) {
 	withUserId := r.URL.Query().Get("with")
-	fmt.Println(withUserId, "walooooooooooo")
 	var userid string
 	err := database.DB.QueryRow(`SELECT id FROM users WHERE token = ?`, withUserId).Scan(&userid)
 	if err != nil {

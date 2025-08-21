@@ -2,7 +2,6 @@ package websocket
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -28,6 +27,11 @@ var (
 
 // WsHandler manages WebSocket connections.
 func WsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get("Upgrade") != "websocket" {
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
+
 	conn, err := Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("WebSocket upgrade error:", err)
@@ -103,7 +107,6 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 	BroadcastOnlineUsers()
 
 	defer func() {
-		fmt.Println("22222")
 		ClientsMutex.Lock()
 		delete(Clients, client)
 		ClientsMutex.Unlock()
@@ -137,13 +140,11 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 
 		if api.Lougout {
 			_, err2 := database.DB.Exec("UPDATE users SET is_online = FALSE WHERE id = ?", user.ID)
-			fmt.Println("mmm")
 			if err2 != nil {
 			}
 
 			for c := range Clients {
 				if c.UserID == user.ID {
-					fmt.Println("22")
 					c.Conn.Close()
 					delete(Clients, c)
 
@@ -166,7 +167,6 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 			log.Printf("WebSocket read error for user %s: %v", user.ID, err)
 			break
 		}
-		fmt.Println(msg, "---------")
 		switch msg.Type {
 		case "private_message":
 			var message struct {
@@ -234,7 +234,6 @@ func BroadcastUserStatus(userID string, isOnline bool) {
 
 // BroadcastOnlineUsers sends a list of all currently online users to all connected clients.
 func BroadcastOnlineUsers() {
-	fmt.Println("5555")
 	rows, err := database.DB.Query("SELECT id, nickname FROM users WHERE is_online = TRUE")
 	if err != nil {
 		log.Println("Failed to get online users:", err)
@@ -415,18 +414,18 @@ func HandleTyping(client *models.Client, senderID, senderNickname, receiverID st
 			err := c.Conn.WriteJSON(struct {
 				Type    string `json:"type"`
 				Payload struct {
-					Sender   string `json:"senderId"`
+					Sender     string `json:"senderId"`
 					SenderName string `json:"senderName"`
 					Receiver   string `json:"receiver"`
 				} `json:"payload"`
 			}{
 				Type: "typing",
 				Payload: struct {
-					Sender  string `json:"senderId"`
+					Sender     string `json:"senderId"`
 					SenderName string `json:"senderName"`
 					Receiver   string `json:"receiver"`
 				}{
-					Sender:   senderID,
+					Sender:     senderID,
 					SenderName: senderNickname,
 					Receiver:   receiverID,
 				},
@@ -480,12 +479,11 @@ func authenticateUser(r *http.Request) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(cookie)
 
 	var userID string
 	err = database.DB.QueryRow("SELECT id FROM users WHERE token = ?", cookie.Value).Scan(&userID)
 	if err != nil {
-		fmt.Println(err)
+		// fmt.Println(err)
 		return "", err
 	}
 

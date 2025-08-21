@@ -55,11 +55,24 @@ export class PostManager {
                 '<div class="error">Failed to load posts. Please try again later.</div>';
         }
     }
+        async loadpostforcreate() {
+        try {
+            const response = await fetch(`/api/posts/forcreate`);
+
+            if (!response.ok) throw new Error('Failed to load posts');
+            const posts = await response.json();
+            this.renderPostsfor(posts || []);
+        
+
+        } catch (error) {
+            console.error('Error loading posts:', error);
+            document.getElementById('posts-container').innerHTML =
+                '<div class="error">Failed to load posts. Please try again later.</div>';
+        }
+    }
     async loadpost() {
 
-        const messagesContainer = document.getElementById('posts-container');
 
-        this.offsetpost += 10;
 
         await this.loadPosts();
 
@@ -117,7 +130,7 @@ export class PostManager {
 
             if (response.ok) {
                 document.getElementById('post-form').reset();
-                this.loadPosts(); // Reload posts after creation
+                this.loadpostforcreate(); // Reload posts after creation
             } else {
                 const error = await response.json();
                 if (error.error == "Authentication required") {
@@ -147,6 +160,10 @@ export class PostManager {
         if (posts.length == 0) {
             return;
         }
+        console.log(posts);
+
+        this.offsetpost += 10;
+
 
         const scrollTop = container.scrollTop;
         const clientHeight = container.clientHeight;
@@ -168,6 +185,41 @@ export class PostManager {
                 </button>
             </div>
         `).join('');
+        container.insertAdjacentHTML('beforeend', postss);
+
+        // Event listeners for view-comments buttons are now handled by event delegation in setupPostEventListeners
+    }
+    renderPostsfor(posts) {
+        const container = document.getElementById('posts-container');
+        if (!container) return;
+
+        if (posts.length == 0) {
+            return;
+        }
+        console.log(posts,'----------------');
+
+        this.offsetpost ++;
+
+
+
+               console.log(posts);
+               
+
+        const postss =  `
+            <div class="post" data-id="${posts.id}">
+                <h3 class="post-title">${posts.title}</h3>
+                <div class="post-meta">
+                    <span>Posted by ${posts.author || 'Unknown'} in ${posts.category || 'General'}</span>
+                    <span>${posts.created_at ? new Date(posts.created_at).toLocaleString() : ''}</span>
+                </div>
+                <div class="post-content">${posts.content || ''}</div>
+                <button class="view-comments" data-post-id="${posts.id}">
+                show
+
+                </button>
+            </div>
+        ` 
+        container.scrollTop=0
         container.insertAdjacentHTML('afterbegin', postss);
 
         // Event listeners for view-comments buttons are now handled by event delegation in setupPostEventListeners

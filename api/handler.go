@@ -271,6 +271,43 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, users)
 }
 
+func GetPostsHandlerfor(w http.ResponseWriter, r *http.Request) {
+	k := r.Header.Get("Accept")
+	if k != "*/*" {
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
+
+	row := database.DB.QueryRow(`
+        SELECT p.id, p.title, p.content, p.category, p.created_at, u.nickname
+        FROM posts p
+        JOIN users u ON p.user_id = u.id
+        ORDER BY p.created_at DESC
+        LIMIT 1`)
+
+	type Post struct {
+		ID        string    `json:"id"`
+		Title     string    `json:"title"`
+		Content   string    `json:"content"`
+		Category  string    `json:"category"`
+		CreatedAt time.Time `json:"created_at"`
+		Author    string    `json:"author"`
+	}
+
+	var post Post
+	err := row.Scan(&post.ID, &post.Title, &post.Content, &post.Category, &post.CreatedAt, &post.Author)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			respondWithJSON(w, http.StatusOK, nil) // ma kaynsh post
+			return
+		}
+		RespondWithError(w, http.StatusInternalServerError, "Failed to fetch last post")
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, post)
+}
+
 // GetPostsHandler retrieves a list of all posts.
 func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
@@ -282,7 +319,6 @@ func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	limit := 10
 	offset := r.URL.Query().Get("with")
-
 
 	rows, err := database.DB.Query(`
     SELECT p.id, p.title, p.content, p.category, p.created_at, u.nickname

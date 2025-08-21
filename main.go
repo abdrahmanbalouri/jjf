@@ -31,8 +31,7 @@ func main() {
 
 	// Set up HTTP server
 	server := &http.Server{
-		Addr:         "0.0.0.0:8080",
-		
+		Addr: "0.0.0.0:8080",
 	}
 
 	// Static file server
@@ -51,6 +50,8 @@ func main() {
 	http.HandleFunc("/api/getcomments", api.GetCommentsHandler)
 	http.HandleFunc("/api/comments", api.RateLimitMiddleware(api.CreateCommentHandler, 5, time.Minute))
 	http.HandleFunc("/api/messages", api.GetMessagesHandler)
+	http.HandleFunc("/api/posts/forcreate", api.GetPostsHandlerfor)
+
 	http.HandleFunc("/api/auto", api.Auto)
 	http.HandleFunc("/ws", websocket.WsHandler)
 

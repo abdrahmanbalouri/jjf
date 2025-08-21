@@ -46,7 +46,7 @@ export class PostManager {
                     }
 
 
-                }, 2000);
+                }, 500);
             }
 
         } catch (error) {
@@ -165,9 +165,9 @@ export class PostManager {
         this.offsetpost += 10;
 
 
-        const scrollTop = container.scrollTop;
+     //   const scrollTop = container.scrollTop;
         const clientHeight = container.clientHeight;
-        container.scrollTop = scrollTop - clientHeight
+        container.scrollTop = container.scrollHeight - clientHeight
 
 
 

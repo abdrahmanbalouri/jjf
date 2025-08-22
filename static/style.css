@@ -749,7 +749,7 @@ button:active {
   z-index: 20000000000000;
   overflow: hidden;
   white-space: nowrap;
-  animation: typing 1s steps(10, end) infinite alternate, blink 0.4s infinite;
+  animation: typing 1s steps(10, end) infinite alternate, 0.1s infinite;
 
 
 
@@ -760,9 +760,7 @@ button:active {
   to { width: 100% }
 }
 
-@keyframes blink {
-  50% { border-color: transparent }
-}
+
 
 .message-form {
   padding: 20px;

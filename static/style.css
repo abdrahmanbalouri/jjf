@@ -749,7 +749,7 @@ button:active {
   z-index: 20000000000000;
   overflow: hidden;
   white-space: nowrap;
-  animation: typing 1s steps(10, end) infinite alternate, 0.1s infinite;
+  animation: typing 1s steps(10, end) infinite alternate,
 
 
 

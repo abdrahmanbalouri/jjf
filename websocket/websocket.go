@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -27,6 +28,10 @@ var (
 
 // WsHandler manages WebSocket connections.
 func WsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		api.RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
+		return
+	}
 	if r.Header.Get("Upgrade") != "websocket" {
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return

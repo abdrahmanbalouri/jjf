@@ -33,6 +33,7 @@ export class AuthManager {
             e.preventDefault();
             this.handleLogout();
         });
+     
     }
 
     async checkSession() {

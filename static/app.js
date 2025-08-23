@@ -3,6 +3,7 @@ import { ForumApp } from './ForumApp.js';
 
 document.addEventListener('DOMContentLoaded', () => {
        
-    window.forumApp = new ForumApp(); 
+ new ForumApp(); 
+
     
 });

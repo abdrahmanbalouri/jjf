@@ -55,14 +55,14 @@ export class PostManager {
                 '<div class="error">Failed to load posts. Please try again later.</div>';
         }
     }
-        async loadpostforcreate() {
+    async loadpostforcreate() {
         try {
             const response = await fetch(`/api/posts/forcreate`);
 
             if (!response.ok) throw new Error('Failed to load posts');
             const posts = await response.json();
             this.renderPostsfor(posts || []);
-        
+
 
         } catch (error) {
             console.error('Error loading posts:', error);
@@ -93,25 +93,25 @@ export class PostManager {
     async handlePostCreate(e) {
 
         e.preventDefault();
-        const token = this.getCookie('session_id');
-        try {
+        // const token = this.getCookie('session_id');
+        // try {
 
-            const response = await fetch(`/api/auto?with=${token}`);
-            if (!response.ok) throw new Error('Failed to load users');
-            const id = await response.json();
+        //     const response = await fetch(`/api/auto?with=${token}`);
+        //     if (!response.ok) throw new Error('Failed to load users');
+        //     const id = await response.json();
 
 
-            if (id !== this.app.currentUser.id) {
-                if (this.app.socket) {
-                    this.app.socket.close();
-                }
-                this.app.authManager.handleLogout()
-                return
-            }
-        } catch (err) {
-            console.log(err);
+        //     if (id !== this.app.currentUser.id) {
+        //         if (this.app.socket) {
+        //             this.app.socket.close();
+        //         }
+        //         this.app.authManager.handleLogout()
+        //         return
+        //     }
+        // } catch (err) {
+        //     console.log(err);
 
-        }
+        // }
         const title = document.getElementById('post-title').value;
         const content = document.getElementById('post-content').value;
         const category = document.getElementById('post-category').value;
@@ -134,6 +134,8 @@ export class PostManager {
             } else {
                 const error = await response.json();
                 if (error.error == "Authentication required") {
+                    console.log(' dfgdfgd');
+
                     throw Error('eror')
                 }
                 const err = document.getElementById('post-error')
@@ -143,7 +145,12 @@ export class PostManager {
                 }, 2000)
             }
         } catch (error) {
-            this.app.authManager.handleLogout()
+            console.log(error);
+
+
+            if (error.message === 'eror') {
+                this.app.authManager.handleLogout()
+            }
         }
     }
     getCookie(name) {
@@ -165,7 +172,7 @@ export class PostManager {
         this.offsetpost += 10;
 
 
-     //   const scrollTop = container.scrollTop;
+        //   const scrollTop = container.scrollTop;
         const clientHeight = container.clientHeight;
         container.scrollTop = container.scrollHeight - clientHeight
 
@@ -196,16 +203,16 @@ export class PostManager {
         if (posts.length == 0) {
             return;
         }
-        console.log(posts,'----------------');
+        console.log(posts, '----------------');
 
-        this.offsetpost ++;
+        this.offsetpost++;
 
 
 
-               console.log(posts);
-               
+        console.log(posts);
 
-        const postss =  `
+
+        const postss = `
             <div class="post" data-id="${posts.id}">
                 <h3 class="post-title">${posts.title}</h3>
                 <div class="post-meta">
@@ -218,8 +225,8 @@ export class PostManager {
 
                 </button>
             </div>
-        ` 
-        container.scrollTop=0
+        `
+        container.scrollTop = 0
         container.insertAdjacentHTML('afterbegin', postss);
 
         // Event listeners for view-comments buttons are now handled by event delegation in setupPostEventListeners
@@ -315,7 +322,9 @@ export class PostManager {
                 }, 2000)
             }
         } catch (error) {
-            this.app.authManager.handleLogout()
+            if (error.message === 'eror') {
+                this.app.authManager.handleLogout()
+            }
 
         }
     }

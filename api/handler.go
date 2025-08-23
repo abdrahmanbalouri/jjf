@@ -111,18 +111,18 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 // LoginHandler handles user login.
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	k := r.Header.Get("Accept")
-
-	if k != "*/*" {
-
-		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
-		return
-	}
-	if r.Method != "POST" {
-		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
-		return
-	}
-	type LoginRequest struct {
+	 fmt.Println(r.Method)
+	 k := r.Header.Get("Accept")
+	 if k != "*/*" {
+		 
+		 http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		 return
+		}
+		if r.Method != "POST" {
+			RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
+			return
+		}
+		type LoginRequest struct {
 		Identifier string `json:"identifier"`
 		Password   string `json:"password"`
 	}
@@ -448,6 +448,7 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method != "POST" {
+		fmt.Println("222222222")
 		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 		return
 	}

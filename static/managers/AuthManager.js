@@ -80,6 +80,8 @@ export class AuthManager {
                 loginErrorElement.textContent = ''; // Clear error on success
                 // Make sure 'messages' container is visible if it was hidden
             } else {
+                console.log(error);
+                
                 const error = await response.json();
                 loginErrorElement.textContent = error.error || 'Login failed';
             }

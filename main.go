@@ -42,7 +42,7 @@ func main() {
 	http.HandleFunc("/api/register", api.RateLimitMiddleware(api.RegisterHandler, 5, time.Minute))
 	http.HandleFunc("/api/login", api.RateLimitMiddleware(api.LoginHandler, 5, time.Minute))
 	http.HandleFunc("/api/logout", api.LogoutHandler)
-	http.HandleFunc("/api/users/me", api.GetCurrentUserHandler)
+	http.HandleFunc("/api/user/me", api.GetCurrentUserHandler)
 	http.HandleFunc("/api/users", api.GetUsersHandler)
 	http.HandleFunc("/api/posts", api.GetPostsHandler)
 	http.HandleFunc("/api/posts/create", api.RateLimitMiddleware(api.CreatePostHandler, 5, time.Minute))

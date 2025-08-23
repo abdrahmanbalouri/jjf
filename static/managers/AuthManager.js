@@ -37,7 +37,9 @@ export class AuthManager {
 
     async checkSession() {
         try {
-            const response = await fetch('/api/users/me');
+            const response = await fetch('/api/user/me');
+            console.log(response);
+            
             if (response.ok) {
                 this.app.currentUser = await response.json();
                 this.app.initWebSocket(); // Initialize WebSocket only after user is authenticated
@@ -48,7 +50,7 @@ export class AuthManager {
                 this.app.showUnauthenticatedUI();
             }
         } catch (error) {
-            console.error('Session check failed:', error);
+         //   console.error('Session check failed:', error);
             this.app.showView('login');
             this.app.showUnauthenticatedUI();
         }
@@ -138,7 +140,7 @@ export class AuthManager {
             }
         } catch (error) {
             console.error('Logout error:', error);
-            alert('Network error during logout');
+           // alert('Network error during logout');
         }
     }
 }

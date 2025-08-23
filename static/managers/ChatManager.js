@@ -92,10 +92,14 @@ export class ChatManager {
                     .map(async user => {
                         try {
                             const msgResponse = await fetch(`/api/messages?with=${user.id}`);
+                            
                             if (!msgResponse.ok) throw new Error('Failed to fetch messages');
                             const messages = await msgResponse.json();
+                              
+                                                           
                             const latestMessage = messages
                                 .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0]?.timestamp || null;
+                                
                             return { ...user, latestMessage };
                         } catch (error) {
                             console.error(`Error fetching messages for user ${user.id}:`, error);
@@ -103,14 +107,16 @@ export class ChatManager {
                         }
                     })
             );
+                            
+                             
             const sortedUsers = usersWithMessages.sort((a, b) => {
                 const timeA = a.latestMessage ? new Date(a.latestMessage) : null;
                 const timeB = b.latestMessage ? new Date(b.latestMessage) : null;
                 if (timeA && timeB) return timeB - timeA;
                 if (timeA) return -1;
                 if (timeB) return 1;
-                if (a.isOnline && !b.isOnline) return -1;
-                if (!a.isOnline && b.isOnline) return 1;
+                // if (a.isOnline && !b.isOnline) return -1;
+                // if (!a.isOnline && b.isOnline) return 1;
                 return a.nickname.localeCompare(b.nickname);
             });
             this.renderUsers(sortedUsers);
@@ -124,10 +130,7 @@ export class ChatManager {
     }
 
     renderUsers(users) {
-               users.forEach((user)=>{
-                console.log(user.id);
-                
-               })
+             
         const container = document.getElementById('users-list');
         if (!container) return;
         container.innerHTML = users

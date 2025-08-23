@@ -14,8 +14,8 @@ import (
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
-	"jj/database" // Import the database package
-	"jj/models"   // Import your models
+	"jj/database" 
+	"jj/models"   
 )
 
 type Client struct {

@@ -14,8 +14,8 @@ import (
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
-	"jj/database" 
-	"jj/models"   
+	"jj/database"
+	"jj/models"
 )
 
 type Client struct {
@@ -42,15 +42,15 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 
 // RegisterHandler handles new user registration.
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
-		return
-	}
 	k := r.Header.Get("Accept")
 
 	if k != "*/*" {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
+	if r.Method != "POST" {
+		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 		return
 	}
 	type RegisterRequest struct {
@@ -111,15 +111,15 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 // LoginHandler handles user login.
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
-		return
-	}
 	k := r.Header.Get("Accept")
 
 	if k != "*/*" {
 
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
+	if r.Method != "POST" {
+		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 		return
 	}
 	type LoginRequest struct {
@@ -187,12 +187,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 // LogoutHandler handles user logout.
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
-		return
-	}
 	k := r.Header.Get("Accept")
-	withUserId := r.URL.Query().Get("with")
 
 	if k != "*/*" {
 
@@ -200,6 +195,11 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if r.Method != "POST" {
+		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
+		return
+	}
+	withUserId := r.URL.Query().Get("with")
 	Lougout = true
 
 	_, err := database.DB.Exec(`
@@ -232,13 +232,13 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetCurrentUserHandler retrieves the currently authenticated user's information.
 func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
-		return
-	}
 	k := r.Header.Get("Accept")
 	if k != "*/*" {
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
+	if r.Method != "GET" {
+		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 		return
 	}
 	userID, err := authenticateUser(r)
@@ -261,6 +261,14 @@ func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetUsersHandler retrieves a list of all users.
 func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
+	k := r.Header.Get("Accept")
+
+	if k != "*/*" {
+
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
+
 	if r.Method != "GET" {
 		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 		return
@@ -292,16 +300,16 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetPostsHandlerfor(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
-		return
-	}
 	k := r.Header.Get("Accept")
 	if k != "*/*" {
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return
 	}
-
+	
+	if r.Method != "GET" {
+		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
+		return
+	}
 	row := database.DB.QueryRow(`
         SELECT p.id, p.title, p.content, p.category, p.created_at, u.nickname
         FROM posts p
@@ -334,15 +342,15 @@ func GetPostsHandlerfor(w http.ResponseWriter, r *http.Request) {
 
 // GetPostsHandler retrieves a list of all posts.
 func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
+	k := r.Header.Get("Accept")
+	
+	if k != "*/*" {
+		
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return
 	}
-	k := r.Header.Get("Accept")
-
-	if k != "*/*" {
-
-		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+	if r.Method != "GET" {
+		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 		return
 	}
 	limit := 10
@@ -385,15 +393,15 @@ func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetPostHandler retrieves a single post by ID.
 func GetPostHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
+	k := r.Header.Get("Accept")
+	
+	if k != "*/*" {
+		
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return
 	}
-	k := r.Header.Get("Accept")
-
-	if k != "*/*" {
-
-		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+	if r.Method != "GET" {
+		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 		return
 	}
 	parts := strings.Split(r.URL.Path, "/")
@@ -432,15 +440,15 @@ func GetPostHandler(w http.ResponseWriter, r *http.Request) {
 
 // CreatePostHandler creates a new post.
 func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
+	k := r.Header.Get("Accept")
+	
+	if k != "*/*" {
+		
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return
 	}
-	k := r.Header.Get("Accept")
-
-	if k != "*/*" {
-
-		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+	if r.Method != "POST" {
+		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 		return
 	}
 	userID, err := authenticateUser(r)
@@ -488,15 +496,15 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetCommentsHandler retrieves comments for a specific post.
 func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
+	k := r.Header.Get("Accept")
+	
+	if k != "*/*" {
+		
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return
 	}
-	k := r.Header.Get("Accept")
-
-	if k != "*/*" {
-
-		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+	if r.Method != "GET" {
+		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 		return
 	}
 
@@ -541,15 +549,15 @@ func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 
 // CreateCommentHandler creates a new comment for a post.
 func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
+	k := r.Header.Get("Accept")
+	
+	if k != "*/*" {
+		
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return
 	}
-	k := r.Header.Get("Accept")
-
-	if k != "*/*" {
-
-		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+	if r.Method != "POST" {
+		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 		return
 	}
 	userID, err := authenticateUser(r)
@@ -597,13 +605,13 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetMessagesHandler retrieves private messages between two users.
 func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
-		return
-	}
 	k := r.Header.Get("Accept")
 	if k != "*/*" {
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
+	if r.Method != "GET" {
+		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 		return
 	}
 
@@ -725,13 +733,13 @@ func authenticateUser(r *http.Request) (string, error) {
 }
 
 func Auto(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
-		return
-	}
 	k := r.Header.Get("Accept")
 	if k != "*/*" {
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
+	if r.Method != "GET" {
+		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 		return
 	}
 	withUserId := r.URL.Query().Get("with")

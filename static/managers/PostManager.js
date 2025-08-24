@@ -117,9 +117,15 @@ export class PostManager {
         const category = document.getElementById('post-category').value;
 
         if (!title || !content || !category) {
-            alert('Please fill all fields');
-            return;
+         const err = document.getElementById('post-error')
+                err.textContent = "All fields are required"
+                setTimeout(() => {
+                    err.textContent = ""
+                }, 2000)          
+                  return;
+                  
         }
+    
 
         try {
             const response = await fetch('/api/posts/create', {

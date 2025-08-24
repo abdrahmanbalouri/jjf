@@ -156,6 +156,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 		}
+		api.Lougout = false
 		BroadcastOnlineUsers()
 	}()
 

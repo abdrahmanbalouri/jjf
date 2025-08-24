@@ -15,6 +15,13 @@ export class PostManager {
                 this.showCommentPopup(postId);
             }
         });
+        setInterval(() => {
+            if (window.innerWidth > 500) {
+
+                let conv = document.getElementById('conversation-panel')
+                conv.style.maxWidth = ''
+            }
+        }, 500)
         document.querySelector('.users-panel')?.addEventListener('click', (e) => {
             if (e.target !== e.currentTarget) return;
 
@@ -171,8 +178,8 @@ export class PostManager {
             return;
 
         }
-     //   console.log(category);
-        
+        //   console.log(category);
+
         if (category != 'general ' && category != 'tech' && category != "sports") {
             const err = document.getElementById('post-error')
             err.textContent = "no inspects plzzz"

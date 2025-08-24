@@ -6,16 +6,18 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 	"jj/database"
 	"jj/models"
+
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Client struct {
@@ -111,18 +113,18 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 // LoginHandler handles user login.
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	 fmt.Println(r.Method)
-	 k := r.Header.Get("Accept")
-	 if k != "*/*" {
-		 
-		 http.Redirect(w, r, "/", http.StatusSeeOther) // 303
-		 return
-		}
-		if r.Method != "POST" {
-			RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
-			return
-		}
-		type LoginRequest struct {
+	fmt.Println(r.Method)
+	k := r.Header.Get("Accept")
+	if k != "*/*" {
+
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
+	if r.Method != "POST" {
+		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
+		return
+	}
+	type LoginRequest struct {
 		Identifier string `json:"identifier"`
 		Password   string `json:"password"`
 	}
@@ -305,7 +307,7 @@ func GetPostsHandlerfor(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return
 	}
-	
+
 	if r.Method != "GET" {
 		RespondWithError(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 		return
@@ -343,9 +345,9 @@ func GetPostsHandlerfor(w http.ResponseWriter, r *http.Request) {
 // GetPostsHandler retrieves a list of all posts.
 func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	
+
 	if k != "*/*" {
-		
+
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return
 	}
@@ -394,9 +396,9 @@ func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
 // GetPostHandler retrieves a single post by ID.
 func GetPostHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	
+
 	if k != "*/*" {
-		
+
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return
 	}
@@ -441,9 +443,9 @@ func GetPostHandler(w http.ResponseWriter, r *http.Request) {
 // CreatePostHandler creates a new post.
 func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	
+
 	if k != "*/*" {
-		
+
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return
 	}
@@ -498,9 +500,9 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 // GetCommentsHandler retrieves comments for a specific post.
 func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	
+
 	if k != "*/*" {
-		
+
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return
 	}
@@ -551,9 +553,9 @@ func GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 // CreateCommentHandler creates a new comment for a post.
 func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	k := r.Header.Get("Accept")
-	
+
 	if k != "*/*" {
-		
+
 		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
 		return
 	}
@@ -756,4 +758,17 @@ func Auto(w http.ResponseWriter, r *http.Request) {
 func IsGmail(email string) bool {
 	re := regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9.]{5,29}@gmail\.com$`)
 	return re.MatchString(email)
+}
+
+func StyleHandler(w http.ResponseWriter, r *http.Request) {
+
+	filePath := strings.TrimPrefix(r.URL.Path, "/")
+	fmt.Println(filePath)
+	File, err := os.Stat(filePath)
+	if err != nil || File.IsDir() {
+		fmt.Println("alaaaa")
+		http.Redirect(w, r, "/", http.StatusSeeOther) // 303
+		return
+	}
+	http.ServeFile(w, r, filePath)
 }

@@ -35,8 +35,8 @@ func main() {
 	}
 
 	// Static file server
-	fs := http.FileServer(http.Dir("./static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	// fs := http.FileServer(http.Dir("./static"))
+	// http.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	// API Routes
 	http.HandleFunc("/api/register", api.RateLimitMiddleware(api.RegisterHandler, 5, time.Minute))
@@ -51,6 +51,7 @@ func main() {
 	http.HandleFunc("/api/comments", api.RateLimitMiddleware(api.CreateCommentHandler, 5, time.Minute))
 	http.HandleFunc("/api/messages", api.GetMessagesHandler)
 	http.HandleFunc("/api/posts/forcreate", api.GetPostsHandlerfor)
+	http.HandleFunc("/static/", api.StyleHandler)
 
 	http.HandleFunc("/api/auto", api.Auto)
 	http.HandleFunc("/ws", websocket.WsHandler)

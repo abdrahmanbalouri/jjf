@@ -20,13 +20,21 @@ export class PostManager {
 
                 let conv = document.getElementById('conversation-panel')
                 conv.style.maxWidth = ''
+                if (document.getElementById('users-list').style.display == 'none'
+                ) {
+                    document.getElementById('users-list').style.display = 'block'
+
+                }
+
             }
-        }, 500)
+        }, 100)
         document.querySelector('.users-panel')?.addEventListener('click', (e) => {
             if (e.target !== e.currentTarget) return;
 
             if (window.innerWidth <= 500) {
                 if (this.page === false) {
+                    document.getElementById('users-list').style.display = 'block'
+
                     let conv = document.getElementById('conversation-panel')
                     conv.style.maxWidth = '200px'
                     let use = document.querySelector('.users-panel');
@@ -44,6 +52,7 @@ export class PostManager {
 
                     this.page = true;
                 } else {
+                    document.getElementById('users-list').style.display = 'none'
                     document.getElementById('conversation-panel').classList.add('hidden');
 
                     this.app.currentConversation = null;

@@ -138,10 +138,10 @@ export class ChatManager {
             .map(user => `
                 <div id="typing-indicator${user.id}" class="typing-indicator"></div>
                 <div class="user ${user.isOnline ? 'online' : 'offline'}"  data-user-id="${user.id}"
-           data-role="${user.nickname}" >
+               data-role="${user.nickname}" >
 
                     <span class="status ${user.isOnline ? 'online' : 'offline'}"></span>
-                    ${user.nickname}
+                    <div id = 'username'>${user.nickname}</div>
                 </div>
             `).join('');
         document.querySelectorAll('.user[data-user-id]').forEach(item => {

@@ -20,6 +20,8 @@ export class PostManager {
 
             if (window.innerWidth <= 500) {
                 if (this.page === false) {
+                     let conv = document.getElementById('conversation-panel')
+                     conv.style.maxWidth = '200px'
                     let use = document.querySelector('.users-panel');
                     use.style.width = 'auto';
                     use.style.height = 'auto';

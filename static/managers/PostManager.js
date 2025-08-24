@@ -139,25 +139,25 @@ export class PostManager {
     async handlePostCreate(e) {
 
         e.preventDefault();
-        // const token = this.getCookie('session_id');
-        // try {
+        const token = this.getCookie('session_id');
+        try {
 
-        //     const response = await fetch(`/api/auto?with=${token}`);
-        //     if (!response.ok) throw new Error('Failed to load users');
-        //     const id = await response.json();
+            const response = await fetch(`/api/auto?with=${token}`);
+            if (!response.ok) throw new Error('Failed to load users');
+            const id = await response.json();
 
 
-        //     if (id !== this.app.currentUser.id) {
-        //         if (this.app.socket) {
-        //             this.app.socket.close();
-        //         }
-        //         this.app.authManager.handleLogout()
-        //         return
-        //     }
-        // } catch (err) {
-        //     console.log(err);
+            if (id !== this.app.currentUser.id) {
+                if (this.app.socket) {
+                    this.app.socket.close();
+                }
+                this.app.authManager.handleLogout()
+                return
+            }
+        } catch (err) {
+            console.log(err);
 
-        // }
+        }
         const title = document.getElementById('post-title').value;
         const content = document.getElementById('post-content').value;
         const category = document.getElementById('post-category').value;
@@ -170,6 +170,16 @@ export class PostManager {
             }, 2000)
             return;
 
+        }
+     //   console.log(category);
+        
+        if (category != 'general ' && category != 'tech' && category != "sports") {
+            const err = document.getElementById('post-error')
+            err.textContent = "no inspects plzzz"
+            setTimeout(() => {
+                err.textContent = ""
+            }, 2000)
+            return;
         }
 
 

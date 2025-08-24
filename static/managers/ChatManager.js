@@ -65,10 +65,10 @@ export class ChatManager {
         this.socket.onclose = () => {
             console.log('WebSocket disconnected');
             const typingIndicator = document.querySelectorAll('.typing-indicator');
-             typingIndicator.forEach((id)=>{
+            typingIndicator.forEach((id) => {
 
-                 id.textContent = '';
-             })
+                id.textContent = '';
+            })
         };
         this.socket.onerror = (error) => {
             console.error('WebSocket error:', error);
@@ -92,14 +92,14 @@ export class ChatManager {
                     .map(async user => {
                         try {
                             const msgResponse = await fetch(`/api/messages?with=${user.id}`);
-                            
+
                             if (!msgResponse.ok) throw new Error('Failed to fetch messages');
                             const messages = await msgResponse.json();
-                              
-                                                           
+
+
                             const latestMessage = messages
                                 .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0]?.timestamp || null;
-                                
+
                             return { ...user, latestMessage };
                         } catch (error) {
                             console.error(`Error fetching messages for user ${user.id}:`, error);
@@ -107,8 +107,8 @@ export class ChatManager {
                         }
                     })
             );
-                            
-                             
+
+
             const sortedUsers = usersWithMessages.sort((a, b) => {
                 const timeA = a.latestMessage ? new Date(a.latestMessage) : null;
                 const timeB = b.latestMessage ? new Date(b.latestMessage) : null;
@@ -117,7 +117,7 @@ export class ChatManager {
                 if (timeB) return 1;
                 // if (a.isOnline && !b.isOnline) return -1;
                 // if (!a.isOnline && b.isOnline) return 1;
-                return a.nickname.localeCompare(b.nickname);
+                return a.nickname.toLowerCase().localeCompare(b.nickname.toLowerCase());
             });
             this.renderUsers(sortedUsers);
         } catch (error) {
@@ -130,7 +130,7 @@ export class ChatManager {
     }
 
     renderUsers(users) {
-             
+
         const container = document.getElementById('users-list');
         if (!container) return;
         container.innerHTML = users
@@ -325,8 +325,8 @@ export class ChatManager {
 
     async handleTypingIndicator(payload) {
         console.log(payload);
-        
-        
+
+
         const token = this.getCookie('session_id');
         try {
             const response = await fetch(`/api/auto?with=${token}`);
@@ -345,18 +345,18 @@ export class ChatManager {
             console.log(err);
 
         }
-        
+
         const typingIndicator = document.getElementById(`typing-indicator${payload.senderId}`);
-        console.log(payload.senderId,'hhh');
-        
-       
-        
+        console.log(payload.senderId, 'hhh');
+
+
+
         if (typingIndicator) {
 
             typingIndicator.textContent = `${payload.senderName} is typing`;
         }
-             console.log(typingIndicator);
-             
+        console.log(typingIndicator);
+
 
     }
 

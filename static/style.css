@@ -38,11 +38,16 @@ header {
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
   color: white;
   padding: 16px 0;
+  margin-bottom: 20px;
   box-shadow: var(--shadow-lg);
   position: sticky;
   top: 0;
   z-index: 100;
   backdrop-filter: blur(10px);
+}
+
+.container {
+  padding: 0px 20px;
 }
 
 nav {
@@ -69,10 +74,11 @@ nav h1 {
   flex-wrap: wrap;
 }
 
-.nav-links a {
+.log-style {
   color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
   padding: 8px 16px;
+  border: 2px solid white;
   border-radius: 8px;
   transition: var(--transition);
   font-weight: 500;
@@ -110,10 +116,7 @@ nav h1 {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.view-container {
-  margin-top: 32px;
-  padding: 0 24px;
-}
+.view-container {}
 
 .view {
   background: var(--surface-color);
@@ -202,7 +205,7 @@ button {
   padding: 14px 28px;
   border-radius: var(--border-radius);
   cursor: pointer;
-  font-size: 16px;
+  font-size: clamp(1rem, 1vw, 2rem);
   font-weight: 600;
   transition: var(--transition);
   overflow: hidden;
@@ -218,19 +221,23 @@ button {
 /* Responsive */
 @media (max-width: 600px) {
   button {
-    font-size: 30px;
     padding: 10px 16px;
     min-width: unset;
     width: 100%;
   }
+
 }
 
 @media (max-width: 500px) {
   button {
-    font-size: 8px;
     padding: 10px 16px;
     min-width: unset;
     width: 100%;
+  }
+
+  nav {
+    justify-content: center;
+    align-items: center;
   }
 }
 
@@ -401,7 +408,7 @@ button:active {
 }
 
 .users-panel {
-  background: linear-gradient(135deg, var(--background-color) 0%, #e0e7ff 100%);
+  background: linear-gradient(185deg, #7851ef 50%, #e0e7ff 100%);
   padding: 20px;
   border-right: 1px solid var(--border-color);
   overflow-y: auto;
@@ -490,7 +497,7 @@ button:active {
 
 .conversation-header {
   padding: 15px 20px;
-  background: linear-gradient(135deg, var(--background-color) 0%, #e0e7ff 100%);
+  background: #7c50ef;
   color: white;
   display: flex;
   align-items: center;
@@ -499,7 +506,6 @@ button:active {
 
 .back-button {
   background: none;
-  border: none;
   color: white;
   font-size: 1.2rem;
   margin-right: 15px;
@@ -585,14 +591,6 @@ button:active {
 .user:hover {
   transform: translateX(5px);
   box-shadow: var(--shadow-md);
-}
-
-.user.online {
-  border-left: 3px solid var(--success-color);
-}
-
-.user.offline {
-  border-left: 3px solid var(--secondary-color);
 }
 
 .status {
@@ -756,8 +754,13 @@ button:active {
 }
 
 @keyframes typing {
-  from { width: 0 }
-  to { width: 100% }
+  from {
+    width: 0
+  }
+
+  to {
+    width: 100%
+  }
 }
 
 
@@ -786,11 +789,23 @@ button:active {
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-md);
     border: 1px solid var(--border-color);
-    max-width: 65%;
+    max-width: 90%;
+    margin: auto;
+    margin-top: 150px;
+  }
 
-    display: block;
-    margin-left: auto;
-    margin-right: 20px;
+  .users-panel {
+    width: 50px;
+    height: 50px;
+    border-radius: 100px;
+    background-color: #7851ef;
+    background-image: url(./images/user-icon-svgrepo-com.svg);
+    background-repeat: no-repeat;
+    background-size: 60px;
+    background-position: top;
+  }
+  .users-panel h3 {
+    display: none;
   }
 }
 

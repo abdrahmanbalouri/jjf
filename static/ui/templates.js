@@ -5,12 +5,12 @@ export const login = `
             <nav>
                 <h1>Forum App</h1>
                 <div class="nav-links" id="auth-links">
-                    <a href="#" id="nav-login">Login</a>
-                    <a href="#" id="nav-register">Register</a>
+                    <a href="#" id="nav-login" class="log-style">Login</a>
+                    <a href="#" id="nav-register" class="log-style">Register</a>
                 </div>
                 <div class="nav-links hidden" id="user-links">
                     <span id="user-nickname-display"></span>
-                    <a href="#" id="nav-logout">Logout</a>
+                    <a href="#" id="nav-logout" class="log-style">Logout</a>
                 </div>
             </nav>
         </div>
@@ -29,7 +29,7 @@ export const login = `
             </div>
             <button type="submit">Login</button>
         </form>
-        <p>Don't have an account? <a href="#" id="show-register">Register</a></p>
+        <p>Don't have an account? <a href="#" id="show-register" class="log-style">Register</a></p>
     </div>
 `;
 
@@ -39,12 +39,12 @@ export const register = `
             <nav>
                 <h1>Forum App</h1>
                 <div class="nav-links" id="auth-links">
-                    <a href="#" id="nav-login">Login</a>
-                    <a href="#" id="nav-register">Register</a>
+                    <a href="#" id="nav-login" class="log-style">Login</a>
+                    <a href="#" id="nav-register" class="log-style">Register</a>
                 </div>
                 <div class="nav-links hidden" id="user-links">
                     <span id="user-nickname-display"></span>
-                    <a href="#" id="nav-logout">Logout</a>
+                    <a href="#" id="nav-logout" class="log-style">Logout</a>
                 </div>
             </nav>
         </div>
@@ -87,7 +87,7 @@ export const register = `
             </div>
             <button type="submit">Register</button>
         </form>
-        <p>Already have an account? <a href="#" id="show-login">Login</a></p>
+        <p>Already have an account? <a href="#" id="show-login" class="log-style">Login</a></p>
     </div>
 `;
 
@@ -150,7 +150,7 @@ export const messages = `
 </div>
 <div class="nav-links hidden" id="user-links">
 <span id="user-nickname-display"></span>
-<a href="#" id="nav-logout">Logout</a>
+<a href="#" id="nav-logout" class="log-style">Logout</a>
 </div>
 </nav>
 </div>
@@ -166,7 +166,7 @@ export const messages = `
     <!-- Conversation (cachée initialement) -->
     <div id="conversation-panel" class="hidden">
         <div class="conversation-header">
-            <button id="back-to-users" class="back-button"> DELETE </button>
+            <button id="back-to-users" class="back-button"> CLOSE </button>
             <h2 id="current-chat-user">  <span id="receiver-name"></span></h2>
         </div>
         <div class="messages-container" id="messages-container"></div>

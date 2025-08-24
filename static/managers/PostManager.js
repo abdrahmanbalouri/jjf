@@ -3,6 +3,7 @@ export class PostManager {
     constructor(app) {
         this.app = app;
         this.offsetpost = 0
+        this.page = false
     }
 
     setupPostEventListeners() {
@@ -14,7 +15,47 @@ export class PostManager {
                 this.showCommentPopup(postId);
             }
         });
+        document.querySelector('.users-panel')?.addEventListener('click', (e) => {
+            if (e.target !== e.currentTarget) return;
+
+            if (window.innerWidth <= 500) {
+                if (this.page === false) {
+                    let use = document.querySelector('.users-panel');
+                    use.style.width = 'auto';
+                    use.style.height = 'auto';
+                    use.style.borderRadius = '0px';
+
+
+
+                    use.style.background = 'linear-gradient(185deg, #7851ef 50%, #e0e7ff 100%)';
+                    use.style.padding = '20px';
+                    use.style.borderRight = '1px solid var(--border-color)';
+                    use.style.overflowY = 'auto';
+                    use.style.transition = 'var(--transition)';
+
+                    this.page = true;
+                } else {
+
+                    let use = document.querySelector('.users-panel');
+                    use.style.borderRadius = '';
+                    use.style.height = ''
+                    use.style.width = ''
+                    use.style.background = '';
+                    use.style.padding = '';
+                    use.style.borderRight = '';
+                    use.style.overflowY = '';
+                    use.style.transition = '';
+
+                    this.page = false;
+
+                }
+            }
+
+
+        })
+
     }
+
 
     async loadPosts() {
         try {
@@ -117,15 +158,15 @@ export class PostManager {
         const category = document.getElementById('post-category').value;
 
         if (!title || !content || !category) {
-         const err = document.getElementById('post-error')
-                err.textContent = "All fields are required"
-                setTimeout(() => {
-                    err.textContent = ""
-                }, 2000)          
-                  return;
-                  
+            const err = document.getElementById('post-error')
+            err.textContent = "All fields are required"
+            setTimeout(() => {
+                err.textContent = ""
+            }, 2000)
+            return;
+
         }
-    
+
 
         try {
             const response = await fetch('/api/posts/create', {

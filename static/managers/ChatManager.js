@@ -156,18 +156,18 @@ export class ChatManager {
         });
     }
 
-    updateUserStatus(userId, isOnline) {
-        const userElement = document.querySelector(`.user[data-user-id="${userId}"]`);
-        if (userElement) {
-            userElement.classList.toggle('online', isOnline);
-            userElement.classList.toggle('offline', !isOnline);
-            const statusElement = userElement.querySelector('.status');
-            if (statusElement) {
-                statusElement.classList.toggle('online', isOnline);
-                statusElement.classList.toggle('offline', !isOnline);
-            }
-        }
-    }
+    // updateUserStatus(userId, isOnline) {
+    //     const userElement = document.querySelector(`.user[data-user-id="${userId}"]`);
+    //     if (userElement) {
+    //         userElement.classList.toggle('online', isOnline);
+    //         userElement.classList.toggle('offline', !isOnline);
+    //         const statusElement = userElement.querySelector('.status');
+    //         if (statusElement) {
+    //             statusElement.classList.toggle('online', isOnline);
+    //             statusElement.classList.toggle('offline', !isOnline);
+    //         }
+    //     }
+    // }
 
     async startConversation(userId, userName) {
         // this.app.initWebSocket()

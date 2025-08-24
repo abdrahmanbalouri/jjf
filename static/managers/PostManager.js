@@ -20,8 +20,8 @@ export class PostManager {
 
             if (window.innerWidth <= 500) {
                 if (this.page === false) {
-                     let conv = document.getElementById('conversation-panel')
-                     conv.style.maxWidth = '200px'
+                    let conv = document.getElementById('conversation-panel')
+                    conv.style.maxWidth = '200px'
                     let use = document.querySelector('.users-panel');
                     use.style.width = 'auto';
                     use.style.height = 'auto';
@@ -37,7 +37,10 @@ export class PostManager {
 
                     this.page = true;
                 } else {
+                    document.getElementById('conversation-panel').classList.add('hidden');
 
+                    this.app.currentConversation = null;
+                    document.getElementById('message-content').value = '';
                     let use = document.querySelector('.users-panel');
                     use.style.borderRadius = '';
                     use.style.height = ''

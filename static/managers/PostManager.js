@@ -7,7 +7,6 @@ export class PostManager {
     }
 
     setupPostEventListeners() {
-        console.log(2222222222222222222222222222222222);
         
         document.getElementById('post-form')?.addEventListener('submit', (e) => this.handlePostCreate(e));
         // Event delegation for comments buttons
@@ -17,7 +16,9 @@ export class PostManager {
                 this.showCommentPopup(postId);
             }
         });
-        setInterval(() => {
+       this.app.id =  setInterval(() => {
+        console.log(222222);
+        
 
             if (window.innerWidth > 500) {
 

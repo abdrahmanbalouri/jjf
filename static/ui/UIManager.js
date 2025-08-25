@@ -20,12 +20,14 @@ export class UIManager {
                 this.app.loadUsers()
                 break;
             case 'login':
+                clearInterval(this.app.id)
                 appContainer.innerHTML = login;
 
                 this.deleteCookie("session_id");
 
                 break;
-            case 'register':
+                case 'register':
+                clearInterval(this.app.id)
                 appContainer.innerHTML = register;
                 break;
                 

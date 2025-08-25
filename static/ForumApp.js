@@ -9,6 +9,7 @@ export class ForumApp {
         this.socket = null;
         this.currentUser = null;
         this.currentConversation = null;
+        this.id = null
 
         // Initialize managers and pass a reference to this ForumApp instance
         this.uiManager = new UIManager(this);

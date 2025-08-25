@@ -637,7 +637,6 @@ func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Récupère le paramètre "offset" de l'URL
 	offset := 0
 	if offsetParam := r.URL.Query().Get("offset"); offsetParam != "" {
 		if o, err := strconv.Atoi(offsetParam); err == nil && o >= 0 {
@@ -645,7 +644,6 @@ func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Voici le changement clé : la requête SQL utilise "LIMIT" et "OFFSET"
 	query := `
         SELECT m.id, m.sender_id, m.content, m.created_at, u.nickname, m.is_read
         FROM private_messages m
@@ -682,7 +680,6 @@ func GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 		messages = append(messages, msg)
 	}
 
-	// Inverse les messages pour les renvoyer dans l'ordre chronologique (du plus ancien au plus récent)
 	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
 		messages[i], messages[j] = messages[j], messages[i]
 	}

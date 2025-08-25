@@ -589,6 +589,16 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sanitizedContent := models.Skip(req.Content)
+	row := database.DB.QueryRow(`SELECT 1 FROM posts WHERE id = ?`, req.PostID)
+	var exists int
+	err1 := row.Scan(&exists)
+	if err1 == sql.ErrNoRows {
+		RespondWithError(w, http.StatusNotFound, "Post not found")
+		return
+	} else if err1 != nil {
+		RespondWithError(w, http.StatusInternalServerError, "Database error")
+		return
+	}
 
 	commentID := uuid.New().String()
 	_, err = database.DB.Exec(`
@@ -758,7 +768,6 @@ func IsGmail(email string) bool {
 }
 
 func StyleHandler(w http.ResponseWriter, r *http.Request) {
-
 	filePath := strings.TrimPrefix(r.URL.Path, "/")
 	fmt.Println(filePath)
 	File, err := os.Stat(filePath)

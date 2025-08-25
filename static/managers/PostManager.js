@@ -366,10 +366,12 @@ export class PostManager {
                 this.handleCommentCreate(e);
             });
         } catch (error) {
-            console.error('Error showing comment popup:', error);
-            document.getElementById('popup-post-title').textContent = 'Error loading post';
-            document.getElementById('popup-comments-container').innerHTML =
-                '<div class="error">Failed to load post details. Please try again.</div>';
+            // console.error('Error showing comment popup:', error);
+            document.getElementById('post-error').textContent = 'Error loading comment and post ';
+            setTimeout(()=>{
+                document.getElementById('post-error').textContent = ''
+            },2000)
+          
         }
     }
 

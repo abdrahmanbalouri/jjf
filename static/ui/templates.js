@@ -3,7 +3,7 @@ export const login = `
   <header>
         <div class="container">
             <nav>
-                <h1>Forum App</h1>
+<h1>Real-Time-Forum</h1>
                 <div class="nav-links" id="auth-links">
                     <a href="#" id="nav-login" class="log-style">Login</a>
                     <a href="#" id="nav-register" class="log-style">Register</a>
@@ -37,7 +37,7 @@ export const register = `
   <header>
         <div class="container">
             <nav>
-                <h1>Forum App</h1>
+<h1>Real-Time-Forum</h1>
                 <div class="nav-links" id="auth-links">
                     <a href="#" id="nav-login" class="log-style">Login</a>
                     <a href="#" id="nav-register" class="log-style">Register</a>
@@ -143,7 +143,7 @@ export const messages = `
 <nav>
 
 
-<h1>Forum App</h1>
+<h1>Real-Time-Forum</h1>
 <div class="nav-links" id="auth-links">
 <a href="#" id="nav-login">Login</a>
 <a href="#" id="nav-register">Register</a>

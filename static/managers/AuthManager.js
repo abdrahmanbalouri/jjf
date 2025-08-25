@@ -5,6 +5,8 @@ export class AuthManager {
     }
 
     setupAuthEventListeners() {
+        console.log(111111111111111111111111111111);
+        
         // Auth navigation
         document.getElementById('nav-register')?.addEventListener('click', (e) => {
             e.preventDefault();

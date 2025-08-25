@@ -8,12 +8,12 @@ export class UIManager {
 
     showView(view) {
         console.log(view);
-        
+
         const appContainer = document.getElementById('app-container');
         appContainer.innerHTML = ''; // Clear previous content
         switch (view) {
             case 'posts':
-                appContainer.innerHTML =  messages + posts; // Show both posts and messages
+                appContainer.innerHTML = messages + posts; // Show both posts and messages
                 this.app.postManager.setupPostEventListeners();
                 this.app.loadPosts();
                 this.app.showAuthenticatedUI()
@@ -21,21 +21,22 @@ export class UIManager {
                 break;
             case 'login':
                 appContainer.innerHTML = login;
+
                 this.deleteCookie("session_id");
 
                 break;
             case 'register':
                 appContainer.innerHTML = register;
                 break;
-           
-        }
-        this.app.authManager.setupAuthEventListeners(); // Reattach auth listeners
+                
+            }
+            this.app.authManager.setupAuthEventListeners(); // Reattach auth listeners
     }
-     deleteCookie(name, path = "/") {
+    deleteCookie(name, path = "/") {
         console.log(222);
-        
-  document.cookie = name + "=; Max-Age=0; path=" + path;
-}
+
+        document.cookie = name + "=; Max-Age=0; path=" + path;
+    }
 
 
     showAuthenticatedUI() {

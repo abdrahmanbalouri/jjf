@@ -21,8 +21,8 @@ export class ForumApp {
 
     initialize() {
         // Event listeners related to app-level navigation (e.g., login/register links)
-        this.authManager.setupAuthEventListeners();
-        this.postManager.setupPostEventListeners(); // For the 'post-form'
+     //   this.authManager.setupAuthEventListeners();
+       // this.postManager.setupPostEventListeners(); // For the 'post-form'
         // Note: Chat listeners are often set up dynamically when a conversation starts or users load
 
         this.authManager.checkSession(); // Start by checking user session

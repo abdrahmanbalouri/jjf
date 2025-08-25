@@ -7,6 +7,8 @@ export class PostManager {
     }
 
     setupPostEventListeners() {
+        console.log(2222222222222222222222222222222222);
+        
         document.getElementById('post-form')?.addEventListener('submit', (e) => this.handlePostCreate(e));
         // Event delegation for comments buttons
         document.getElementById('posts-container')?.addEventListener('click', (e) => {
@@ -32,11 +34,9 @@ export class PostManager {
 
             }
             if (window.innerWidth <= 500) {
-                console.log(this.page);
 
 
                 if (this.page == false) {
-                    console.log(222);
                     document.getElementById('users-list').style.display = 'none'
 
                 }

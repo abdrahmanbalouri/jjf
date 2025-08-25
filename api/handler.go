@@ -589,7 +589,7 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sanitizedContent := models.Skip(req.Content)
-	row := database.DB.QueryRow(`SELECT 1 FROM posts WHERE id = ?`, req.PostID)
+	row := database.DB.QueryRow(`SELECT title FROM posts WHERE id = ?`, req.PostID)
 	var exists int
 	err1 := row.Scan(&exists)
 	if err1 == sql.ErrNoRows {

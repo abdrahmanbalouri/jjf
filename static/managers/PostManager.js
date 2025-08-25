@@ -16,25 +16,34 @@ export class PostManager {
             }
         });
         setInterval(() => {
+
             if (window.innerWidth > 500) {
 
                 let conv = document.getElementById('conversation-panel')
-                conv.style.maxWidth = ''
+                if (conv) {
+
+                    conv.style.maxWidth = ''
+                }
                 if (document.getElementById('users-list').style.display == 'none'
                 ) {
                     document.getElementById('users-list').style.display = 'block'
 
                 }
-                if (window.innerWidth <= 500) {
-                    if (this.page == false) {
-                        document.getElementById('users-list').style.display = 'none'
 
-                    }
+            }
+            if (window.innerWidth <= 500) {
+                console.log(this.page);
 
+
+                if (this.page == false) {
+                    console.log(222);
+                    document.getElementById('users-list').style.display = 'none'
 
                 }
 
+
             }
+
         }, 100)
         document.querySelector('.users-panel')?.addEventListener('click', (e) => {
             console.log(e.target.classList.value);

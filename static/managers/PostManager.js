@@ -25,52 +25,64 @@ export class PostManager {
                     document.getElementById('users-list').style.display = 'block'
 
                 }
+                if (window.innerWidth <= 500) {
+                    if (this.page == false) {
+                        document.getElementById('users-list').style.display = 'none'
+
+                    }
+
+
+                }
 
             }
         }, 100)
         document.querySelector('.users-panel')?.addEventListener('click', (e) => {
-            if (e.target !== e.currentTarget) return;
+            console.log(e.target.classList.value);
 
-            if (window.innerWidth <= 500) {
-                if (this.page === false) {
-                    document.getElementById('users-list').style.display = 'block'
+            if (e.target == e.currentTarget || e.target.classList.value == 'typing-indicator') {
 
-                    let conv = document.getElementById('conversation-panel')
-                    conv.style.maxWidth = '200px'
-                    let use = document.querySelector('.users-panel');
-                    use.style.width = 'auto';
-                    use.style.height = 'auto';
-                    use.style.borderRadius = '0px';
+                if (window.innerWidth <= 500) {
+                    if (this.page === false) {
+                        document.getElementById('users-list').style.display = 'block'
+
+                        let conv = document.getElementById('conversation-panel')
+                        conv.style.maxWidth = '200px'
+                        let use = document.querySelector('.users-panel');
+                        use.style.width = 'auto';
+                        use.style.height = 'auto';
+                        use.style.borderRadius = '0px';
 
 
 
-                    use.style.background = 'linear-gradient(185deg, #7851ef 50%, #e0e7ff 100%)';
-                    use.style.padding = '20px';
-                    use.style.borderRight = '1px solid var(--border-color)';
-                    use.style.overflowY = 'auto';
-                    use.style.transition = 'var(--transition)';
+                        use.style.background = 'linear-gradient(185deg, #7851ef 50%, #e0e7ff 100%)';
+                        use.style.padding = '20px';
+                        use.style.borderRight = '1px solid var(--border-color)';
+                        use.style.overflowY = 'auto';
+                        use.style.transition = 'var(--transition)';
 
-                    this.page = true;
-                } else {
-                    document.getElementById('users-list').style.display = 'none'
-                    document.getElementById('conversation-panel').classList.add('hidden');
+                        this.page = true;
+                    } else {
+                        document.getElementById('users-list').style.display = 'none'
+                        document.getElementById('conversation-panel').classList.add('hidden');
 
-                    this.app.currentConversation = null;
-                    document.getElementById('message-content').value = '';
-                    let use = document.querySelector('.users-panel');
-                    use.style.borderRadius = '';
-                    use.style.height = ''
-                    use.style.width = ''
-                    use.style.background = '';
-                    use.style.padding = '';
-                    use.style.borderRight = '';
-                    use.style.overflowY = '';
-                    use.style.transition = '';
+                        this.app.currentConversation = null;
+                        document.getElementById('message-content').value = '';
+                        let use = document.querySelector('.users-panel');
+                        use.style.borderRadius = '';
+                        use.style.height = ''
+                        use.style.width = ''
+                        use.style.background = '';
+                        use.style.padding = '';
+                        use.style.borderRight = '';
+                        use.style.overflowY = '';
+                        use.style.transition = '';
 
-                    this.page = false;
+                        this.page = false;
 
+                    }
                 }
             }
+
 
 
         })
